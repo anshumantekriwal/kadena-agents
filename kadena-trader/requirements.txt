@@ -1,8 +1,13 @@
-fastapi==0.115.7
-uvicorn==0.34.0
-python-dotenv==1.0.1
-langchain==0.3.24
-langchain-openai==0.3.14
 pydantic==2.10.6
 python-multipart==0.0.9
-openai==1.76.0 
+# Core dependencies
+langchain>=0.0.335
+langchain-openai>=0.0.2
+langchain-core>=0.1.0
+openai>=1.0.0
+# HTTP and requests
+requests>=2.31.0
+fastapi>=0.110.0
+uvicorn>=0.27.0
+# Environment management
+python-dotenv>=1.0.0 

@@ -606,27 +606,35 @@ async function baselineFunction() {
     const keyPair = await getKeys();
     console.log("Keys retrieved successfully");
 
+    // 2. Load current balances
     const balances = await getBalances("k:" + keyPair.publicKey);
     console.log(balances);
 
-    // 2. Create transaction (placeholder)
+    // 3. Create transaction (placeholder)
     console.log("Creating transaction...");
 
     // ENTER AI CODE HERE
+    // END AI CODE
 
     console.log("Transaction created:", transaction);
 
-    // 3. Sign the transaction
+    // 4. Sign the transaction
     console.log("Signing transaction...");
     const signature = await signTransaction(transaction, keyPair);
     console.log("Transaction signed successfully");
 
-    // 4. Submit the transaction
+    console.log("Signature:", signature);
+
+    const signedTransaction = {
+      cmd: transaction.cmd,
+      hash: transaction.hash,
+      sigs: [signature],
+    };
+
+    console.log("Signed transaction:", signedTransaction);
+    // 5. Submit the transaction
     console.log("Submitting transaction...");
-    const result = await submitTransaction({
-      ...transaction,
-      signature,
-    });
+    const result = await submitTransaction(signedTransaction);
     console.log("Transaction submitted successfully:", result);
 
     return result;
@@ -708,7 +716,7 @@ def code(prompt: str) -> Dict[str, Any]:
             > - The user will not be involved in the execution. Thus, you must write impeccable code.
             > - The user's balance will be provided in the balances variable in the format: 
                 {{
-                coin: '4.998509',
+                'coin': '4.998509',
                 'kaddex.kdx': '1500',
                 'n_b742b4e9c600892af545afb408326e82a6c0c6ed.zUSD': '0.5',
                 'n_582fed11af00dc626812cd7890bb88e72067f28c.bro': '0.0015',

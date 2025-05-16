@@ -1,7 +1,6 @@
-import { sign } from "@kadena/cryptography-utils";
 import { Pact, createClient } from "@kadena/client";
 import dotenv from "dotenv";
-
+import { kadenaSignWithKeyPair } from "@kadena/hd-wallet";
 // Custom error classes for better error handling
 class KadenaError extends Error {
   constructor(message, code = "KADENA_ERROR", details = {}) {
@@ -296,23 +295,6 @@ async function getKeys() {
     const privateKey = process.env.PRIVATE_KEY;
     const publicKey = process.env.PUBLIC_KEY;
 
-    // Validate key formats
-    if (!/^[0-9a-f]{64}$/.test(privateKey)) {
-      throw new ValidationError("Invalid private key format", {
-        expectedFormat: "64 hex characters",
-        actualLength: privateKey.length,
-        suggestion: "Ensure private key is in correct hex format",
-      });
-    }
-
-    if (!/^[0-9a-f]{64}$/.test(publicKey)) {
-      throw new ValidationError("Invalid public key format", {
-        expectedFormat: "64 hex characters",
-        actualLength: publicKey.length,
-        suggestion: "Ensure public key is in correct hex format",
-      });
-    }
-
     return {
       secretKey: privateKey,
       publicKey: publicKey,
@@ -357,7 +339,13 @@ async function signTransaction(transaction, keyPair) {
         : JSON.stringify(transaction);
 
     try {
-      const signature = sign(transaction.hash, keyPair);
+      const password = process.env.PASSWORD;
+      const signFn = kadenaSignWithKeyPair(
+        password,
+        keyPair.publicKey,
+        keyPair.secretKey
+      );
+      const signature = await signFn(transaction.hash);
       return signature;
     } catch (signError) {
       throw new TransactionError("Failed to sign transaction", {
@@ -636,26 +624,35 @@ async function baselineFunction() {
     const keyPair = await getKeys();
     console.log("Keys retrieved successfully");
 
+    // 2. Load current balances
     const balances = await getBalances("k:" + keyPair.publicKey);
     console.log(balances);
 
-    // 2. Create transaction (placeholder)
+    // 3. Create transaction (placeholder)
     console.log("Creating transaction...");
 
     // ENTER AI CODE HERE
+    // END AI CODE
 
     console.log("Transaction created:", transaction);
-    // 3. Sign the transaction
+
+    // 4. Sign the transaction
     console.log("Signing transaction...");
     const signature = await signTransaction(transaction, keyPair);
     console.log("Transaction signed successfully");
 
-    // 4. Submit the transaction
+    console.log("Signature:", signature);
+
+    const signedTransaction = {
+      cmd: transaction.cmd,
+      hash: transaction.hash,
+      sigs: [signature],
+    };
+
+    console.log("Signed transaction:", signedTransaction);
+    // 5. Submit the transaction
     console.log("Submitting transaction...");
-    const result = await submitTransaction({
-      ...transaction,
-      signature,
-    });
+    const result = await submitTransaction(signedTransaction);
     console.log("Transaction submitted successfully:", result);
 
     return result;
@@ -665,15 +662,4 @@ async function baselineFunction() {
   }
 }
 
-// Export all necessary functions
-export {
-  getBalances,
-  getKeys,
-  signTransaction,
-  submitTransaction,
-  setApiKey,
-  transfer,
-  swap,
-  quote,
-  baselineFunction,
-};
+baselineFunction();

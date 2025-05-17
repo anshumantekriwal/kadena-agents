@@ -619,28 +619,29 @@ async function getBalances(accountName, chainId = "2") {
  */
 async function baselineFunction() {
   try {
-    // 1. Retrieve keys from KMS
     console.log("Retrieving keys from KMS...");
     const keyPair = await getKeys();
     console.log("Keys retrieved successfully");
 
-    // 2. Load current balances
-    const balances = await getBalances("k:" + keyPair.publicKey);
-    console.log(balances);
+    const account = "k:" + keyPair.publicKey;
+    const balances = await getBalances(account);
+    console.log("Balances:", balances);
 
-    // 3. Create transaction (placeholder)
     console.log("Creating transaction...");
-
-    // ENTER AI CODE HERE
-    // END AI CODE
+    const { transaction } = await swap({
+      tokenInAddress: "coin",
+      tokenOutAddress: "n_582fed11af00dc626812cd7890bb88e72067f28c.bro",
+      account,
+      amountIn: "0.01",
+      slippage: 0.01,
+      chainId: "2",
+    });
 
     console.log("Transaction created:", transaction);
 
-    // 4. Sign the transaction
     console.log("Signing transaction...");
     const signature = await signTransaction(transaction, keyPair);
     console.log("Transaction signed successfully");
-
     console.log("Signature:", signature);
 
     const signedTransaction = {
@@ -650,14 +651,14 @@ async function baselineFunction() {
     };
 
     console.log("Signed transaction:", signedTransaction);
-    // 5. Submit the transaction
+
     console.log("Submitting transaction...");
     const result = await submitTransaction(signedTransaction);
     console.log("Transaction submitted successfully:", result);
 
     return result;
   } catch (error) {
-    console.error("Error in baseline function:", error);
+    console.error("Error in baselineFunction:", error);
     throw error;
   }
 }

@@ -1,0 +1,3 @@
+2025-06-04 22:59:43,183 - __main__ - INFO - Generating code for prompt: Buy 2 ETH using USDC every 5 minutes...
+2025-06-04 23:00:13,464 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-04 23:00:13,501 - __main__ - INFO - Code generation completed successfully

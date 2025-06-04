@@ -23,3 +23,8 @@ kadena-trader/pnpm-lock.yaml
 /node_modules
 package-lock.json
 /kadena-trader/__pycache__
+evm-agents/.env
+/evm-agents/__pycache__
+/evm-agents/node_modules
+evm-agents/pnpm-lock.yaml
+evm-agents/SUMMARY.md

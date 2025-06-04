@@ -106,7 +106,7 @@ async function baselineFunction() {
     const toTokenAddress = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"; // USDC on Polygon
 
     // For testing, use a mock wallet address
-    const walletAddress = "0xYourWalletAddress";
+    const walletAddress = "0xb0ff54808427d753F51B359c0ffc177242Fb4804";
 
     const oneEthWei = await convertAmount({
       amount: "1",

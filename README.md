@@ -1,34 +1,59 @@
 # Kadena Agents
 
-A collection of tools and applications for interacting with the Kadena blockchain, including trading, chat, and AI capabilities.
+A comprehensive suite of tools and applications for interacting with the Kadena blockchain ecosystem. This repository provides a collection of integrated components for trading, chat functionality, API interactions, and AI-powered services on the Kadena blockchain.
 
 ## Project Structure
 
-This repository contains several components:
+This repository contains several specialized components:
 
-- `kadena-trader/`: Trading API services to create advanced trading strategies
-- `kadena-chat-app/`: A chat application built on Kadena
-- `kadena-api/`: API services for Kadena blockchain interactions
-- `kadena-ai/`: AI-powered tools and services for Kadena
+- `kadena-trader/`: Advanced trading services with automated strategies and market analysis
+- `kadena-chat-app/`: React-based chat application with wallet integration
+- `kadena-api/`: Core API services for Kadena blockchain interactions including NFTs, swaps, and transfers
+- `kadena-ai/`: AI-powered tools for blockchain analysis and intelligent interactions
+- `evm-agents/`: Agents for interacting with EVM (Ethereum Virtual Machine) compatibility features
 
 ## Prerequisites
 
 - Node.js (v16 or higher)
+- Python 3.9+ (for AI and trading components)
 - npm or yarn
 - Kadena account and credentials
+- API keys for relevant services
 
 ## Installation
+
+Each component has its own dependencies and setup requirements. Follow these steps for a complete installation:
 
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/kadena-agents.git
+git clone https://github.com/Xade/kadena-agents.git
 cd kadena-agents
 ```
 
-2. Install dependencies:
+2. Install dependencies for specific components:
 
 ```bash
+# For the API service
+cd kadena-api
+npm install
+
+# For the chat application
+cd ../kadena-chat-app
+npm install
+
+# For the AI component
+cd ../kadena-ai
+pip install -r requirements.txt
+
+# For the trading component
+cd ../kadena-trader
+pip install -r requirements.txt
+npm install
+
+# For EVM agents
+cd ../evm-agents
+pip install -r requirements.txt
 npm install
 ```
 
@@ -36,39 +61,85 @@ npm install
 
 ### Kadena Trader
 
-The trading component provides automated trading capabilities on the Kadena blockchain. It includes features for:
+The trading component provides automated trading capabilities on the Kadena blockchain with a Python/JavaScript hybrid architecture. Features include:
 
-- Market analysis
-- Automated trading strategies
-- Portfolio management
+- Market analysis and data processing
+- Automated trading strategies with customizable parameters
+- Portfolio management and performance tracking
+- API-based trade execution
+- Wallet creation and management tools
 
 ### Kadena Chat App
 
-A decentralized chat application built on Kadena that enables:
+A React-based decentralized chat application built on Kadena that enables:
 
-- Secure messaging
-- Group chats
-- File sharing
+- Secure messaging with blockchain integration
+- Magic.link authentication
+- Wallet integration for token transfers
+- TypeScript-based architecture for type safety
+- Responsive design with custom styling
 
 ### Kadena API
 
-A set of API services that provide:
+A Node.js-based set of API services that provide:
 
-- Blockchain interaction endpoints
-- Data querying capabilities
-- Transaction management
+- NFT management endpoints (routes/nft.js)
+- Token swap functionality (routes/swap.js)
+- Token transfer services (routes/transfer.js)
+- Health monitoring endpoints (routes/health.js)
+- Configuration-based token management
 
 ### Kadena AI
 
-AI-powered tools that offer:
+AI-powered Python tools that offer:
 
-- Smart contract analysis
-- Trading strategy optimization
-- Market prediction models
+- Smart contract analysis and interaction
+- Agent-based automation for blockchain tasks
+- API integration for real-time data processing
+- Jupyter notebook playground for experimentation
+- Configurable AI parameters for different use cases
+
+### EVM Agents
+
+Tools for interacting with EVM (Ethereum Virtual Machine) compatibility features:
+
+- Transaction handling and monitoring
+- Smart contract deployment and interaction
+- API integration for EVM-compatible chains
+- Baseline implementations for common operations
 
 ## Development
 
 Each component can be developed and tested independently. Navigate to the respective directory and follow the component-specific instructions in their README files.
+
+### Configuration
+
+Most components require configuration files:
+
+- `kadena-api/config.js` - API configuration settings
+- `kadena-api/tokens.yml` - Token definitions for the API
+- `kadena-chat-app/.env` - Environment variables for the chat application (create from .env.example)
+- `kadena-ai/config.py` - Configuration for AI services
+
+### Running the Components
+
+```bash
+# Start the API server
+cd kadena-api
+node server.js
+
+# Start the chat application in development mode
+cd kadena-chat-app
+npm start
+
+# Run AI services
+cd kadena-ai
+python agent.py
+
+# Execute trading strategies
+cd kadena-trader
+python api.py
+```
 
 ## Contributing
 
@@ -82,10 +153,27 @@ Each component can be developed and tested independently. Navigate to the respec
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## Integration Between Components
+
+The components in this repository are designed to work together:
+
+- **kadena-api** provides the backend services that the chat app and trading components consume
+- **kadena-ai** can analyze data from the trader component to suggest optimized strategies
+- **kadena-chat-app** uses the API services for blockchain interactions
+- **evm-agents** extend functionality to EVM-compatible operations
+
 ## Support
 
 For support, please open an issue in the GitHub repository or contact the maintainers.
 
 ## Security
 
-Please report any security issues to security@example.com
+Please report any security issues responsibly by contacting the repository maintainers. Do not disclose security issues publicly until they have been addressed.
+
+## Roadmap
+
+- Enhanced integration between AI and trading components
+- Expanded EVM compatibility features
+- Additional wallet integration options
+- Improved documentation and examples
+- Performance optimizations for high-volume trading

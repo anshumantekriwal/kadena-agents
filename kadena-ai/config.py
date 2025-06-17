@@ -512,7 +512,7 @@ blacklist:
 
 # API Endpoints
 KADENA_API_BASE_URL = "https://kadena-agents.onrender.com"
-ANALYSIS_API_URL = "https://analyze-slaz.onrender.com/analyze"
+ANALYSIS_API_URL = "https://kadena-rag.onrender.com/query"
 
 # History Configuration
 MAX_HISTORY_LENGTH = 10  # Maximum number of conversation pairs to keep 

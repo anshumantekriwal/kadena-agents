@@ -158,8 +158,7 @@ class KadenaAnalysisTool(BaseTool):
             response = requests.post(
                 ANALYSIS_API_URL,
                 json={
-                    'query': query,
-                    'systemPrompt': systemPrompt               
+                    'query': query
                 },
                 headers={'Content-Type': 'application/json'}
             )

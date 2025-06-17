@@ -258,11 +258,10 @@ class KadenaAnalysisTool(BaseTool):
         """
         try:
             response = requests.post(
-                'https://analyze-slaz.onrender.com/analyze',
+                'https://kadena-rag.onrender.com/query',
                 json={
-                    'query': query,
-                    'systemPrompt': systemPrompt                
-                    },
+                    'query': query
+                },
                 headers={'Content-Type': 'application/json'}
             )
             

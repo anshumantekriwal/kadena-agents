@@ -219,13 +219,20 @@ router.post("/launch", async (req, res) => {
     try {
       const pactClient = getClient(chainId);
 
-      // Generate token ID using Kadena's approach
+      // Generate token ID with proper policy format
       req.logStep("Generating token ID");
+
+      let policyName =
+        policy === "DEFAULT_COLLECTION_NON_UPDATABLE"
+          ? "marmalade-v2.non-fungible-policy-v1"
+          : policy === "DEFAULT_COLLECTION_ROYALTY_NON_UPDATABLE"
+          ? "marmalade-v2.royalty-policy-v1"
+          : policy;
 
       const tokenIdCmd = Pact.builder
         .execution(
           `(use marmalade-v2.ledger)(use marmalade-v2.util-v1)
-           (create-token-id { 'precision: ${precision}, 'policies: (create-policies ${policy}), 'uri: "${uri.trim()}"} (read-keyset 'ks))`
+           (create-token-id { 'precision: ${precision}, 'policies: [${policyName}], 'uri: "${uri.trim()}"} (read-keyset 'ks))`
         )
         .setMeta({
           chainId: String(chainId),
@@ -240,6 +247,9 @@ router.post("/launch", async (req, res) => {
 
       if (!tokenIdResult?.result?.data) {
         req.logStep("Failed to generate token ID");
+        req.logStep(
+          `Token ID error: ${JSON.stringify(tokenIdResult?.result?.error)}`
+        );
         throw new Error(
           tokenIdResult?.result?.error?.message || "Failed to generate token ID"
         );
@@ -247,7 +257,7 @@ router.post("/launch", async (req, res) => {
 
       const tokenId = tokenIdResult.result.data;
 
-      // Construct NFT creation and minting code using Kadena's approach
+      // Construct NFT creation and minting code with consistent keyset
       req.logStep("Building NFT transaction");
       const pactCode = `(use marmalade-v2.ledger)
 (use marmalade-v2.util-v1)
@@ -255,7 +265,7 @@ router.post("/launch", async (req, res) => {
   ${JSON.stringify(tokenId)} 
   ${precision} 
   (read-msg 'uri) 
-  (create-policies ${policy}) 
+  [${policyName}] 
   (read-keyset 'ks)
 ) 
 (mint 

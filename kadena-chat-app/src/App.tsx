@@ -10,6 +10,10 @@ import Login from "./components/Login";
 import Chat from "./components/Chat";
 import "./App.css";
 import { WalletProvider } from "./context/WalletContext";
+import Navbar from "./components/Navbar";
+import AgentLauncher from "./components/agent/AgentLauncher";
+import Terminal from "./components/terminal/Terminal";
+import WalletInfo from "./components/WalletInfo";
 
 // Protected route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -61,6 +65,33 @@ const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute>
               <Chat />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/agent"
+          element={
+            <ProtectedRoute>
+              <AgentLauncher />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/terminal"
+          element={
+            <ProtectedRoute>
+              <Terminal />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/wallet"
+          element={
+            <ProtectedRoute>
+              <div style={{ padding: '20px' }}>
+                <Navbar />
+                <WalletInfo />
+              </div>
             </ProtectedRoute>
           }
         />

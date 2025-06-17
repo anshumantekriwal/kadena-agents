@@ -28,3 +28,5 @@ evm-agents/.env
 /evm-agents/node_modules
 evm-agents/pnpm-lock.yaml
 evm-agents/SUMMARY.md
+/kadena-chat-app/baseline/node_modules
+kadena-chat-app/baseline/.env

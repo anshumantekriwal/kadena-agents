@@ -14,6 +14,7 @@ import walletService, { SignAndSubmitResult } from "../services/walletService";
 import WalletInfo from "./WalletInfo";
 import "./Chat.css";
 import { getAllBalances } from "../utils/transactions";
+import Navbar from "./Navbar";
 
 interface Message {
   role: "user" | "assistant";
@@ -207,7 +208,7 @@ const Chat: React.FC = () => {
 
   // Function to render message content based on type
   const renderMessageContent = (message: Message) => {
-    if (message.isMarkdown && message.role === "assistant") {
+    if (message.role === "assistant") {
       return (
         <div
           className="markdown-content"
@@ -215,7 +216,6 @@ const Chat: React.FC = () => {
         />
       );
     }
-
     return <div>{message.content}</div>;
   };
 
@@ -224,12 +224,26 @@ const Chat: React.FC = () => {
 
     if (!inputValue.trim() || !user?.accountName) return;
 
+    // Check for private keys ending with '==' to avoid censoring public keys/addresses.
+    const privateKeyRegex = /\b[a-zA-Z0-9\._\-+/]{20,}={1,2}\b/;
+    if (privateKeyRegex.test(inputValue)) {
+      const errorMessage: Message = {
+        role: "assistant",
+        content:
+          "## Security Warning\n\nIt looks like you might have entered a private key. **Never share your private keys with anyone, including this chat.** For your security, this message has not been sent.",
+        isMarkdown: true,
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+      setInputValue("");
+      return;
+    }
+
     // Create context string
     const context = {
       accountName: user.accountName,
-      publicKey: user.publicKey || "not available",
+      publicKey: String(user.publicKey),
       guard: {
-        keys: [user.publicKey || "not available"],
+        keys: [String(user.publicKey)],
         pred: "keys-all",
       },
       chainId: "2",
@@ -264,13 +278,36 @@ const Chat: React.FC = () => {
       let responseContent: string;
       let isMarkdown = true; // Default to true for all assistant messages
 
-      if (typeof response.response === "string") {
-        responseContent = response.response;
-      } else if (response.response && "transaction" in response.response) {
-        setPendingTransaction(response.response as TransactionResponse);
-        responseContent = formatTransactionResponse(response.response);
+      let apiResponse = response.response;
+
+      // Handle cases where the response is a JSON string
+      if (typeof apiResponse === "string") {
+        try {
+          apiResponse = JSON.parse(apiResponse);
+        } catch (e) {
+          // Not a valid JSON string, apiResponse remains a string.
+        }
+      }
+
+      if (typeof apiResponse === "string") {
+        responseContent = apiResponse;
+      } else if (apiResponse && "transaction" in apiResponse) {
+        setPendingTransaction(apiResponse as TransactionResponse);
+        responseContent = formatTransactionResponse(apiResponse);
+      } else if (
+        apiResponse &&
+        "response" in apiResponse &&
+        typeof (apiResponse as any).response === "string"
+      ) {
+        responseContent = (apiResponse as any).response;
+      } else if (
+        apiResponse &&
+        "answer" in apiResponse &&
+        typeof (apiResponse as any).answer === "string"
+      ) {
+        responseContent = (apiResponse as any).answer;
       } else {
-        responseContent = formatTransactionResponse(response.response);
+        responseContent = formatTransactionResponse(apiResponse);
       }
 
       const assistantMessage: Message = {
@@ -372,131 +409,130 @@ const Chat: React.FC = () => {
     setMessages((prev) => [...prev, cancelMessage]);
   };
 
-  return (
-    <div className="chat-container">
-      <div className="chat-header">
-        <div className="user-info">
-          <div className="user-avatar">
-            {user?.email?.charAt(0).toUpperCase() || "U"}
-          </div>
-          <div className="user-details">
-            <div className="user-name">{user?.email || "User"}</div>
-            <div className="user-wallet">
-              {user?.accountName || "No wallet connected"}
-            </div>
-          </div>
-        </div>
-        <div className="header-actions">
-          <button className="wallet-toggle" onClick={toggleWallet}>
-            {showWallet ? "Hide Wallet" : "Show Wallet"}
-          </button>
-          <button className="logout-button" onClick={handleLogout}>
-            Logout
-          </button>
-        </div>
-      </div>
+  const handleLaunchAgent = () => {
+    window.location.href = '/agent';
+  };
 
-      <div className="main-content">
-        <div className="messages-container">
-          {messages.length === 0 ? (
-            <div className="empty-state">
-              <h2>Welcome to Agent K</h2>
-              <p>The supreme Kadena being</p>
-            </div>
-          ) : (
-            messages.map((message, index) => (
-              <div
-                key={index}
-                className={`message ${
-                  message.role === "user" ? "user-message" : "assistant-message"
-                } ${
-                  error && index === messages.length - 1 ? "error-message" : ""
-                }`}
-              >
-                <div className="message-content">
-                  {renderMessageContent(message)}
+  return (
+    <>
+      <Navbar />
+      <div className="chat-container" style={{ background: '#000', minHeight: '100vh' }}>
+        <div className="main-content">
+          <div className="messages-container">
+            {messages.length === 0 ? (
+              <div className="empty-state" style={{ color: '#fff', textAlign: 'center', marginTop: '4rem' }}>
+                <h2 style={{ color: '#fff', fontWeight: 700, fontSize: '2rem', marginBottom: '0.5rem' }}>Hello! I'm Agent K</h2>
+                <p style={{ color: '#bbb', fontSize: '1.2rem', marginBottom: '2rem' }}>Your Kadena blockchain assistant.<br/>How can I help you today?</p>
+                <div className="disclaimer" style={{ color: '#888', fontSize: '0.9rem', maxWidth: '600px', margin: '2rem auto 0', padding: '1rem', border: '1px solid #333', borderRadius: '12px', background: '#181818' }}>
+                  <p><strong>Disclaimer:</strong> Agent K is an experimental AI. Always verify transaction details from reliable sources before confirming. Transactions on the blockchain are irreversible.</p>
+                  <p style={{ marginTop: '1rem' }}><strong>Security Warning:</strong> NEVER share your private key or seed phrase. This application will never ask for them.</p>
                 </div>
               </div>
-            ))
-          )}
-          {isLoading && (
-            <div className="message assistant-message">
-              <div className="message-content loading">
-                <div className="loading-dot"></div>
-                <div className="loading-dot"></div>
-                <div className="loading-dot"></div>
+            ) : (
+              messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`message ${
+                    message.role === "user" ? "user-message" : "assistant-message"
+                  } ${
+                    error && index === messages.length - 1 ? "error-message" : ""
+                  }`}
+                  style={{
+                    background: message.role === 'user' ? '#222' : '#181818',
+                    color: '#fff',
+                    borderRadius: '12px',
+                    padding: '1rem',
+                    margin: '0.5rem 0',
+                    maxWidth: '80%',
+                    alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                  }}
+                >
+                  <div className="message-content">
+                    {renderMessageContent(message)}
+                  </div>
+                </div>
+              ))
+            )}
+            {isLoading && (
+              <div className="message assistant-message">
+                <div className="message-content loading">
+                  <div className="loading-dot"></div>
+                  <div className="loading-dot"></div>
+                  <div className="loading-dot"></div>
+                </div>
+              </div>
+            )}
+
+            {/* Transaction confirmation buttons */}
+            {pendingTransaction && !isSubmittingTx && !transactionResult && (
+              <div className="transaction-actions">
+                <button
+                  className="confirm-button"
+                  onClick={handleConfirmTransaction}
+                  disabled={isSubmittingTx}
+                >
+                  Sign & Submit
+                </button>
+                <button
+                  className="cancel-button"
+                  onClick={handleCancelTransaction}
+                  disabled={isSubmittingTx}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            {isSubmittingTx && (
+              <div className="message assistant-message">
+                <div className="message-content loading">
+                  <span style={{ marginRight: "0.5rem" }}>
+                    <b>Signing and submitting transaction</b>
+                  </span>
+                  <div className="loading-dot"></div>
+                  <div className="loading-dot"></div>
+                  <div className="loading-dot"></div>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+
+          {showWallet && (
+            <div className="wallet-overlay">
+              <div className="wallet-overlay-backdrop" onClick={toggleWallet} />
+              <div className="wallet-overlay-content">
+                <WalletInfo />
+                <button className="wallet-overlay-close" onClick={toggleWallet}>
+                  Close
+                </button>
               </div>
             </div>
           )}
-
-          {/* Transaction confirmation buttons */}
-          {pendingTransaction && !isSubmittingTx && !transactionResult && (
-            <div className="transaction-actions">
-              <button
-                className="confirm-button"
-                onClick={handleConfirmTransaction}
-                disabled={isSubmittingTx}
-              >
-                Sign & Submit
-              </button>
-              <button
-                className="cancel-button"
-                onClick={handleCancelTransaction}
-                disabled={isSubmittingTx}
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-
-          {isSubmittingTx && (
-            <div className="message assistant-message">
-              <div className="message-content loading">
-                <span style={{ marginRight: "0.5rem" }}>
-                  <b>Signing and submitting transaction</b>
-                </span>
-                <div className="loading-dot"></div>
-                <div className="loading-dot"></div>
-                <div className="loading-dot"></div>
-              </div>
-            </div>
-          )}
-
-          <div ref={messagesEndRef} />
         </div>
 
-        {showWallet && (
-          <div className="wallet-overlay">
-            <div className="wallet-overlay-backdrop" onClick={toggleWallet} />
-            <div className="wallet-overlay-content">
-              <WalletInfo />
-              <button className="wallet-overlay-close" onClick={toggleWallet}>
-                Close
-              </button>
-            </div>
-          </div>
-        )}
+        <div className="input-container" style={{ background: '#111' }}>
+          <form onSubmit={handleSendMessage}>
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="Type your message here..."
+              disabled={isLoading || isSubmittingTx}
+            />
+            <button
+              type="submit"
+              className="send-button"
+              disabled={!inputValue.trim() || isLoading || isSubmittingTx}
+            >
+              {isLoading ? <LoadingDots /> : <SendButton />}
+            </button>
+          </form>
+        </div>
       </div>
-
-      <div className="input-container">
-        <form onSubmit={handleSendMessage}>
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type your message here..."
-            disabled={isLoading || isSubmittingTx}
-          />
-          <button
-            type="submit"
-            className="send-button"
-            disabled={!inputValue.trim() || isLoading || isSubmittingTx}
-          >
-            {isLoading ? <LoadingDots /> : <SendButton />}
-          </button>
-        </form>
-      </div>
-    </div>
+    </>
   );
 };
 

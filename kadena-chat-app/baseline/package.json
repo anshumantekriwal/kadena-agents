@@ -1,0 +1,18 @@
+{
+  "name": "baseline",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@kadena/client": "^1.17.1",
+    "@kadena/hd-wallet": "^0.6.1",
+    "dotenv": "^16.5.0",
+    "simple-git": "^3.28.0"
+  }
+}

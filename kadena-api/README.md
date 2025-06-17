@@ -67,19 +67,26 @@ No authentication required. Returns basic server information and status.
 POST /transfer
 ```
 
-Generates an unsigned token transfer transaction.
+Generates an unsigned token transfer transaction. Automatically handles both existing and new accounts:
+
+- **For existing accounts**: The transaction will complete the transfer
+- **For new accounts**: The transaction will create the account and transfer tokens in one operation
+
+The API automatically extracts the receiver's guard information from their `k:` address, so no additional guard parameters are needed.
 
 **Request Body:**
 
 ```json
 {
   "tokenAddress": "coin",
-  "sender": "k:account-public-key",
-  "receiver": "k:recipient-public-key",
+  "sender": "k:sender-public-key-hash",
+  "receiver": "k:receiver-public-key-hash",
   "amount": 10.0,
   "chainId": "2"
 }
 ```
+
+**Note**: Only `k:` addresses are supported for the receiver. The API uses `coin.transfer-create` for all transfers, which works for both existing and new accounts.
 
 ### NFT Collection Creation
 
@@ -87,23 +94,36 @@ Generates an unsigned token transfer transaction.
 POST /nft/collection
 ```
 
-Creates a new NFT collection using Marmalade V2.
+Creates a new NFT collection using Marmalade V2. The API automatically fetches the account guard from the blockchain, so no guard parameter is required.
 
 **Request Body:**
 
 ```json
 {
-  "account": "k:creator-public-key",
-  "guard": {
-    "keys": ["creator-public-key"],
-    "pred": "keys-all"
-  },
+  "account": "k:creator-public-key-hash",
   "name": "My Collection",
   "description": "An example NFT collection",
   "totalSupply": 10000,
   "chainId": "2"
 }
 ```
+
+**Required Fields:**
+
+- `account`: The creator's account address (must start with "k:")
+- `name`: Collection name (non-empty string)
+
+**Optional Fields:**
+
+- `description`: Collection description (string, default: "")
+- `totalSupply`: Maximum supply for the collection (positive integer, default: 1000000)
+- `chainId`: Blockchain chain ID (string, default: "2")
+
+**Features:**
+
+- Automatic duplicate collection detection
+- Enhanced input validation
+- Better error messages with specific HTTP status codes
 
 ### NFT Launch (Create and Mint)
 
@@ -165,6 +185,45 @@ All successful responses follow this format:
   },
   "metadata": {
     /* Additional contextual information */
+  }
+}
+```
+
+**Transfer Response Example:**
+
+```json
+{
+  "transaction": {
+    "cmd": "...",
+    "hash": "...",
+    "sigs": [null]
+  },
+  "metadata": {
+    "sender": "k:sender123...",
+    "receiver": "k:receiver456...",
+    "amount": 10.5,
+    "tokenAddress": "coin",
+    "chainId": "2",
+    "transactionType": "transfer-create",
+    "estimatedGas": 0.0000025
+  }
+}
+```
+
+**Collection Response Example:**
+
+```json
+{
+  "transaction": {
+    "cmd": "...",
+    "hash": "...",
+    "sigs": [null]
+  },
+  "collectionId": "collection:ABC123...",
+  "metadata": {
+    "name": "My Collection",
+    "description": "Collection description",
+    "totalSupply": 10000
   }
 }
 ```

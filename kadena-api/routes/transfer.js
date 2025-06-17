@@ -16,6 +16,23 @@ const {
 /**
  * POST /transfer
  * Generate unsigned transaction data for token transfers between accounts
+ *
+ * Required parameters:
+ * - tokenAddress: Token contract address (e.g., "coin" for KDA)
+ * - sender: Sender account address
+ * - receiver: Receiver account address
+ * - amount: Amount to transfer (string or number)
+ * - chainId: Blockchain chain ID
+ *
+ * Optional parameters:
+ * - gasLimit: Transaction gas limit (default: 2500)
+ * - gasPrice: Gas price (default: 0.00000001)
+ * - ttl: Time to live in seconds (default: 600)
+ * - meta: Additional metadata object
+ *
+ * Returns:
+ * - Always uses coin.transfer-create (works for both existing and new accounts)
+ * - Automatically extracts guard from k: address
  */
 router.post("/", async (req, res) => {
   try {
@@ -140,7 +157,24 @@ router.post("/", async (req, res) => {
     const userGuard = accountDetails.result.data.guard;
     req.logStep("Sender details retrieved");
 
-    // 6. Prepare transaction
+    // 6. Extract receiver guard from k: account address
+    let inferredReceiverGuard = null;
+    if (receiver.startsWith("k:") && receiver.length === 66) {
+      const publicKey = receiver.substring(2); // Remove "k:" prefix
+      inferredReceiverGuard = {
+        keys: [publicKey],
+        pred: "keys-all",
+      };
+      req.logStep("Inferred receiver guard from account");
+    } else {
+      req.logStep("Cannot infer guard from non-k: account");
+      return res.status(400).json({
+        error: "Invalid receiver account",
+        details: "Only k: addresses are supported",
+      });
+    }
+
+    // 7. Prepare transaction
     const txMeta = {
       creationTime: creationTime(),
       ttl: parseInt(ttl, 10),
@@ -151,20 +185,22 @@ router.post("/", async (req, res) => {
       ...meta,
     };
 
-    // 7. Create transaction
+    // 8. Create transaction
     try {
       req.logStep("Building transaction");
 
       // Build the transaction command
       let pactCode;
-      const envData = { amount: formattedAmount };
-      const transferAmount = { decimal: formattedAmount };
+      const envData = {
+        amount: formattedAmount,
+        receiverGuard: inferredReceiverGuard,
+      };
 
-      // Set up code and capabilities based on token type
+      // Always use transfer-create (works for both existing and new accounts)
       if (tokenAddress === "coin") {
-        pactCode = `(coin.transfer "${sender}" "${receiver}" (read-decimal 'amount))`;
+        pactCode = `(coin.transfer-create "${sender}" "${receiver}" (read-keyset 'receiverGuard) (read-decimal 'amount))`;
       } else {
-        pactCode = `(${tokenAddress}.transfer "${sender}" "${receiver}" (read-decimal 'amount))`;
+        pactCode = `(${tokenAddress}.transfer-create "${sender}" "${receiver}" (read-keyset 'receiverGuard) (read-decimal 'amount))`;
       }
 
       const capabilities = [
@@ -174,7 +210,7 @@ router.post("/", async (req, res) => {
             tokenAddress === "coin"
               ? "coin.TRANSFER"
               : `${tokenAddress}.TRANSFER`,
-          args: [sender, receiver, transferAmount],
+          args: [sender, receiver, parseFloat(formattedAmount)],
         },
       ];
 
@@ -224,12 +260,13 @@ router.post("/", async (req, res) => {
         metadata: {
           sender,
           receiver,
-          amount: numericAmount,
+          amount: parseFloat(formattedAmount),
           tokenAddress,
           chainId,
           networkId: KADENA_NETWORK_ID,
           estimatedGas: txMeta.gasLimit * txMeta.gasPrice,
           formattedAmount,
+          transactionType: "transfer-create",
         },
       });
     } catch (error) {

@@ -391,6 +391,15 @@ router.post("/launch", async (req, res) => {
 /**
  * POST /nft/collection
  * Generates an unsigned transaction to create a new Marmalade collection.
+ *
+ * Required body parameters:
+ * - account: The account address (must start with "k:")
+ * - name: Collection name (non-empty string)
+ *
+ * Optional body parameters:
+ * - description: Collection description (string, default: "")
+ * - totalSupply: Maximum supply for the collection (positive integer, default: 1000000)
+ * - chainId: Blockchain chain ID (string, default: "2")
  */
 router.post("/collection", async (req, res) => {
   try {
@@ -398,7 +407,6 @@ router.post("/collection", async (req, res) => {
 
     const {
       account,
-      guard,
       name,
       description = "",
       totalSupply = 1000000,
@@ -415,7 +423,7 @@ router.post("/collection", async (req, res) => {
       });
     }
 
-    // Validate account and guard
+    // Validate account
     const accountValidation = validateAccount(account);
     if (!accountValidation.valid) {
       req.logStep("Invalid account format");
@@ -425,21 +433,31 @@ router.post("/collection", async (req, res) => {
       });
     }
 
-    const guardValidation = validateGuard(guard);
-    if (!guardValidation.valid) {
-      req.logStep("Invalid guard format");
+    // Validate name
+    if (!name || typeof name !== "string" || name.trim().length === 0) {
+      req.logStep("Missing or invalid collection name");
       return res.status(400).json({
-        error: guardValidation.error,
-        details: guardValidation.details,
+        error: "Missing required parameters",
+        details: "name is required and must be a non-empty string",
       });
     }
 
-    // Validate name
-    if (!name) {
-      req.logStep("Missing collection name");
+    // Validate totalSupply
+    const parsedTotalSupply = parseInt(totalSupply);
+    if (isNaN(parsedTotalSupply) || parsedTotalSupply <= 0) {
+      req.logStep("Invalid total supply");
       return res.status(400).json({
-        error: "Missing required parameters",
-        details: "name is required",
+        error: "Invalid totalSupply",
+        details: "totalSupply must be a positive integer",
+      });
+    }
+
+    // Validate description if provided
+    if (description && typeof description !== "string") {
+      req.logStep("Invalid description format");
+      return res.status(400).json({
+        error: "Invalid description",
+        details: "description must be a string",
       });
     }
 
@@ -480,10 +498,19 @@ router.post("/collection", async (req, res) => {
 
       if (!collectionIdResult?.result?.data) {
         req.logStep("Failed to generate collection ID");
-        throw new Error(
+        const errorMessage =
           collectionIdResult?.result?.error?.message ||
-            "Failed to generate collection ID"
-        );
+          "Failed to generate collection ID";
+
+        // Check for specific error types
+        if (
+          errorMessage.includes("already exists") ||
+          errorMessage.includes("duplicate")
+        ) {
+          throw new Error(`Collection with name "${name}" already exists`);
+        }
+
+        throw new Error(errorMessage);
       }
 
       const collectionId = collectionIdResult.result.data;
@@ -499,10 +526,10 @@ router.post("/collection", async (req, res) => {
 
       // Prepare environment data
       const envData = {
-        name,
-        description,
+        name: name.trim(),
+        description: description.trim(),
         collectionId,
-        totalSupply: parseInt(totalSupply),
+        totalSupply: parsedTotalSupply,
         ks: accountGuard,
       };
 
@@ -553,9 +580,30 @@ router.post("/collection", async (req, res) => {
           sigs: [null],
         },
         collectionId: collectionId,
+        metadata: {
+          name: name.trim(),
+          description: description.trim(),
+          totalSupply: parsedTotalSupply,
+        },
       });
     } catch (error) {
       req.logStep("Transaction preparation failed");
+
+      // Provide more specific error messages
+      if (error.message.includes("already exists")) {
+        return res.status(409).json({
+          error: "Collection already exists",
+          details: error.message,
+        });
+      }
+
+      if (error.message.includes("Account not found")) {
+        return res.status(404).json({
+          error: "Account not found",
+          details: "The specified account does not exist on the blockchain",
+        });
+      }
+
       return res.status(500).json({
         error: "Transaction preparation failed",
         details: error.message,

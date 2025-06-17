@@ -219,27 +219,20 @@ router.post("/launch", async (req, res) => {
     try {
       const pactClient = getClient(chainId);
 
-      // Generate token ID with proper policy format
+      // Generate token ID using Kadena's exact approach
       req.logStep("Generating token ID");
-
-      let policyName =
-        policy === "DEFAULT_COLLECTION_NON_UPDATABLE"
-          ? "marmalade-v2.non-fungible-policy-v1"
-          : policy === "DEFAULT_COLLECTION_ROYALTY_NON_UPDATABLE"
-          ? "marmalade-v2.royalty-policy-v1"
-          : policy;
 
       const tokenIdCmd = Pact.builder
         .execution(
           `(use marmalade-v2.ledger)(use marmalade-v2.util-v1)
-           (create-token-id { 'precision: ${precision}, 'policies: [${policyName}], 'uri: "${uri.trim()}"} (read-keyset 'ks))`
+           (create-token-id { 'precision: ${precision}, 'policies: (create-policies ${policy}), 'uri: "${uri.trim()}"} (read-keyset 'ks))`
         )
         .setMeta({
           chainId: String(chainId),
           gasLimit: 80000,
           gasPrice: 0.0000001,
         })
-        .addKeyset("ks", accountGuard.pred, ...accountGuard.keys)
+        .addData("ks", { keys: accountGuard.keys, pred: accountGuard.pred })
         .setNetworkId(KADENA_NETWORK_ID)
         .createTransaction();
 
@@ -257,23 +250,15 @@ router.post("/launch", async (req, res) => {
 
       const tokenId = tokenIdResult.result.data;
 
-      // Construct NFT creation and minting code with consistent keyset
+      // Construct NFT creation and minting code using Kadena's exact approach
       req.logStep("Building NFT transaction");
       const pactCode = `(use marmalade-v2.ledger)
 (use marmalade-v2.util-v1)
-(create-token 
-  ${JSON.stringify(tokenId)} 
-  ${precision} 
-  (read-msg 'uri) 
-  [${policyName}] 
-  (read-keyset 'ks)
-) 
-(mint 
-  ${JSON.stringify(tokenId)} 
-  (read-msg 'mintTo) 
-  (at 'guard (coin.details (read-msg 'mintTo))) 
-  1.0
-)`;
+(create-token ${JSON.stringify(
+        tokenId
+      )} ${precision} (read-msg 'uri) (create-policies ${policy}) (read-keyset 'ks)) (mint ${JSON.stringify(
+        tokenId
+      )} (read-msg 'mintTo) (at 'guard (coin.details (read-msg 'mintTo))) 1.0)`;
 
       // Prepare environment data
       const envData = {
@@ -292,51 +277,56 @@ router.post("/launch", async (req, res) => {
         };
       }
 
-      // Define capabilities
-      const capabilities = [
-        { name: "coin.GAS", args: [] },
-        {
-          name: "marmalade-v2.ledger.CREATE-TOKEN",
-          args: [tokenId, precision, uri.trim(), accountGuard],
-        },
-        { name: "marmalade-v2.ledger.MINT", args: [tokenId, mintTo, 1.0] },
-        {
-          name: "marmalade-v2.collection-policy-v1.TOKEN-COLLECTION",
-          args: [collectionId, tokenId],
-        },
-      ];
+      // Create transaction using Kadena's Pact.builder approach
+      const k = {
+        keys: [...accountGuard.keys],
+        pred: accountGuard.pred,
+      };
 
-      if (policy.includes("ROYALTY")) {
-        capabilities.push({
-          name: "marmalade-v2.royalty-policy-v1.ENFORCE-ROYALTY",
-          args: [tokenId],
-        });
-      }
-
-      // Transaction metadata
       const txMeta = createTxMeta(chainId, account);
 
-      // Create transaction
-      const pactCommand = {
-        networkId: KADENA_NETWORK_ID,
-        payload: {
-          exec: {
-            data: envData,
-            code: pactCode,
-          },
-        },
-        signers: [
+      const tx = Pact.builder
+        .execution(pactCode)
+        .addSigner(
           {
             pubKey: accountGuard.keys[0],
             scheme: "ED25519",
-            clist: capabilities,
           },
-        ],
-        meta: txMeta,
-        nonce: `mint:${Date.now()}:${Math.random()
-          .toString(36)
-          .substring(2, 15)}`,
-      };
+          (signFor) => [
+            signFor("coin.GAS"),
+            signFor("marmalade-v2.ledger.MINT", tokenId, mintTo, {
+              decimal: "1.0",
+            }),
+            signFor("marmalade-v2.ledger.CREATE-TOKEN", tokenId, k),
+            signFor(
+              "marmalade-v2.collection-policy-v1.TOKEN-COLLECTION",
+              collectionId,
+              tokenId
+            ),
+          ]
+        )
+        .setMeta(txMeta)
+        .setNetworkId(KADENA_NETWORK_ID)
+        .addKeyset("ks", accountGuard.pred, ...accountGuard.keys)
+        .addData("uri", uri.trim())
+        .addData("mintTo", mintTo)
+        .addData("collection_id", collectionId);
+
+      if ((name || "").trim()) {
+        tx.addData("name", (name || "").trim());
+      }
+      if ((description || "").trim()) {
+        tx.addData("description", (description || "").trim());
+      }
+
+      if (royalties > 0 && policy.includes("ROYALTY")) {
+        tx.addData("royaltyData", {
+          royalty: royalties / 100,
+          recipient: royaltyRecipient,
+        });
+      }
+
+      const pactCommand = tx.createTransaction();
 
       // Generate transaction hash
       req.logStep("Generating transaction hash");

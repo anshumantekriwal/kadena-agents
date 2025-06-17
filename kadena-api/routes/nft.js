@@ -127,7 +127,6 @@ router.post("/launch", async (req, res) => {
 
     const {
       account,
-      guard,
       mintTo,
       uri,
       precision = 0,
@@ -157,15 +156,6 @@ router.post("/launch", async (req, res) => {
       return res.status(400).json({
         error: accountValidation.error,
         details: accountValidation.details,
-      });
-    }
-
-    const guardValidation = validateGuard(guard);
-    if (!guardValidation.valid) {
-      req.logStep("Invalid guard format");
-      return res.status(400).json({
-        error: guardValidation.error,
-        details: guardValidation.details,
       });
     }
 
@@ -209,34 +199,33 @@ router.post("/launch", async (req, res) => {
       }
     }
 
-    // Get account guard
-    req.logStep("Fetching account guard");
-    const accountGuardResult = await getAccountGuard(account, chainId);
-    if (!accountGuardResult.success) {
-      req.logStep("Failed to fetch account guard");
-      return res.status(404).json({
-        error: accountGuardResult.error,
-        details: accountGuardResult.details,
+    // Extract account guard from k: address
+    let accountGuard;
+    if (account.startsWith("k:") && account.length === 66) {
+      const publicKey = account.substring(2); // Remove "k:" prefix
+      accountGuard = {
+        keys: [publicKey],
+        pred: "keys-all",
+      };
+      req.logStep("Extracted account guard from k: address");
+    } else {
+      req.logStep("Invalid account format for NFT creation");
+      return res.status(400).json({
+        error: "Invalid account format",
+        details: "Only k: addresses are supported for NFT creation",
       });
     }
-    const accountGuard = accountGuardResult.guard;
 
     try {
       const pactClient = getClient(chainId);
 
-      // Generate token ID
+      // Generate token ID using Kadena's approach
       req.logStep("Generating token ID");
-      let policyName =
-        policy === "DEFAULT_COLLECTION_NON_UPDATABLE"
-          ? "marmalade-v2.non-fungible-policy-v1"
-          : policy === "DEFAULT_COLLECTION_ROYALTY_NON_UPDATABLE"
-          ? "marmalade-v2.royalty-policy-v1"
-          : policy;
 
       const tokenIdCmd = Pact.builder
         .execution(
           `(use marmalade-v2.ledger)(use marmalade-v2.util-v1)
-           (create-token-id { 'precision: ${precision}, 'policies: [${policyName}], 'uri: "${uri}"} (read-keyset 'ks))`
+           (create-token-id { 'precision: ${precision}, 'policies: (create-policies ${policy}), 'uri: "${uri.trim()}"} (read-keyset 'ks))`
         )
         .setMeta({
           chainId: String(chainId),
@@ -258,19 +247,7 @@ router.post("/launch", async (req, res) => {
 
       const tokenId = tokenIdResult.result.data;
 
-      // Get mintTo account's guard
-      req.logStep("Fetching mintTo account guard");
-      const mintToGuardResult = await getAccountGuard(mintTo, chainId);
-      if (!mintToGuardResult.success) {
-        req.logStep("Failed to fetch mintTo guard");
-        return res.status(404).json({
-          error: "MintTo account not found",
-          details: "Could not retrieve mintTo account details",
-        });
-      }
-      const mintToGuard = mintToGuardResult.guard;
-
-      // Construct NFT creation and minting code
+      // Construct NFT creation and minting code using Kadena's approach
       req.logStep("Building NFT transaction");
       const pactCode = `(use marmalade-v2.ledger)
 (use marmalade-v2.util-v1)
@@ -278,24 +255,24 @@ router.post("/launch", async (req, res) => {
   ${JSON.stringify(tokenId)} 
   ${precision} 
   (read-msg 'uri) 
-  [${policyName}] 
+  (create-policies ${policy}) 
   (read-keyset 'ks)
 ) 
 (mint 
   ${JSON.stringify(tokenId)} 
   (read-msg 'mintTo) 
-  (read-keyset 'mintToKs) 
+  (at 'guard (coin.details (read-msg 'mintTo))) 
   1.0
 )`;
 
       // Prepare environment data
       const envData = {
-        uri,
+        uri: uri.trim(),
         ks: accountGuard,
         mintTo,
         collection_id: collectionId,
-        name: name || "",
-        description: description || "",
+        name: (name || "").trim(),
+        description: (description || "").trim(),
       };
 
       if (royalties > 0 && policy.includes("ROYALTY")) {
@@ -310,7 +287,7 @@ router.post("/launch", async (req, res) => {
         { name: "coin.GAS", args: [] },
         {
           name: "marmalade-v2.ledger.CREATE-TOKEN",
-          args: [tokenId, precision, uri, guard],
+          args: [tokenId, precision, uri.trim(), accountGuard],
         },
         { name: "marmalade-v2.ledger.MINT", args: [tokenId, mintTo, 1.0] },
         {

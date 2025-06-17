@@ -481,19 +481,19 @@ router.post("/collection", async (req, res) => {
     try {
       const pactClient = getClient(chainId);
 
-      // Create collection ID
+      // Generate collection ID using the same approach as Kadena examples
       req.logStep("Generating collection ID");
       const collectionIdCmd = Pact.builder
         .execution(
           `(use marmalade-v2.collection-policy-v1)
-           (create-collection-id ${JSON.stringify(name)} (read-keyset 'ks))`
+           (create-collection-id ${JSON.stringify(
+             name.trim()
+           )} (read-keyset 'ks))`
         )
         .setMeta({
           chainId: ensureChainIdString(chainId),
-          gasLimit: 15000,
+          gasLimit: 80000,
           gasPrice: 0.0000001,
-          creationTime: creationTime(),
-          ttl: 600,
         })
         .addKeyset("ks", accountGuard.pred, ...accountGuard.keys)
         .setNetworkId(KADENA_NETWORK_ID)
@@ -506,51 +506,29 @@ router.post("/collection", async (req, res) => {
         const errorMessage =
           collectionIdResult?.result?.error?.message ||
           "Failed to generate collection ID";
-
-        // Check for specific error types
-        if (
-          errorMessage.includes("already exists") ||
-          errorMessage.includes("duplicate")
-        ) {
-          throw new Error(`Collection with name "${name}" already exists`);
-        }
-
         throw new Error(errorMessage);
       }
 
       const collectionId = collectionIdResult.result.data;
+      req.logStep(`Generated collection ID: ${collectionId}`);
 
-      // Build transaction
+      // Build transaction using Kadena examples approach
       req.logStep("Building collection transaction");
       const pactCode = `(use marmalade-v2.collection-policy-v1)
-(marmalade-v2.collection-policy-v1.create-collection
-  ${JSON.stringify(collectionId)}
-  (read-msg 'name)
-  (read-integer 'totalSupply)
-  (read-keyset 'ks))`;
+(create-collection ${JSON.stringify(collectionId)}
+                   ${JSON.stringify(name.trim())}
+                   ${parsedTotalSupply}
+                   (read-keyset 'ks)) ${JSON.stringify(collectionId)}`;
 
       // Prepare environment data
       const envData = {
-        name: name.trim(),
-        description: description.trim(),
-        collectionId,
-        totalSupply: parsedTotalSupply,
         ks: accountGuard,
       };
-
-      // Define capabilities
-      const capabilities = [
-        { name: "coin.GAS", args: [] },
-        {
-          name: "marmalade-v2.collection-policy-v1.COLLECTION-CREATE",
-          args: [collectionId],
-        },
-      ];
 
       // Transaction metadata
       const txMeta = createTxMeta(chainId, account);
 
-      // Create transaction
+      // Create transaction following Kadena examples approach (no capabilities)
       const pactCommand = {
         networkId: KADENA_NETWORK_ID,
         payload: {
@@ -563,7 +541,6 @@ router.post("/collection", async (req, res) => {
           {
             pubKey: accountGuard.keys[0],
             scheme: "ED25519",
-            clist: capabilities,
           },
         ],
         meta: txMeta,

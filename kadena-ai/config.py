@@ -101,7 +101,6 @@ API_DOCS = {
         "description": "Create a new NFT collection",
         "required_params": [
             "account",         # Sender account
-            "guard",           # Account guard
             "name",            # Collection name
             "chainId"          # Chain ID (0-19)
         ],

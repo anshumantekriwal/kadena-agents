@@ -148,7 +148,6 @@ class KadenaTransactionTool(BaseTool):
     For collection creation:
     - endpoint: "nft/collection"
     - account: User's account (k:account format)
-    - guard: Guard object with keys and pred
     - name: Collection name
     - chainId: Chain ID (must be "2")
     - Optional: description, totalSupply
@@ -176,7 +175,7 @@ class KadenaTransactionTool(BaseTool):
             'transfer': ['tokenAddress', 'sender', 'receiver', 'amount', 'chainId'],
             'swap': ['tokenInAddress', 'tokenOutAddress', 'account', 'chainId'],
             'nft/launch': ['name', 'account', 'guard', 'mintTo', 'uri', 'collectionId', 'chainId'],
-            'nft/collection': ['account', 'guard', 'name', 'chainId']
+            'nft/collection': ['account', 'name', 'chainId']
         }
         
         # Special validation for swap endpoint

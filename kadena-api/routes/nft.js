@@ -461,17 +461,22 @@ router.post("/collection", async (req, res) => {
       });
     }
 
-    // Get account guard
-    req.logStep("Fetching account guard");
-    const accountGuardResult = await getAccountGuard(account, chainId);
-    if (!accountGuardResult.success) {
-      req.logStep("Failed to fetch account guard");
-      return res.status(404).json({
-        error: accountGuardResult.error,
-        details: accountGuardResult.details,
+    // Extract account guard from k: address
+    let accountGuard;
+    if (account.startsWith("k:") && account.length === 66) {
+      const publicKey = account.substring(2); // Remove "k:" prefix
+      accountGuard = {
+        keys: [publicKey],
+        pred: "keys-all",
+      };
+      req.logStep("Extracted account guard from k: address");
+    } else {
+      req.logStep("Invalid account format for collection creation");
+      return res.status(400).json({
+        error: "Invalid account format",
+        details: "Only k: addresses are supported for collection creation",
       });
     }
-    const accountGuard = accountGuardResult.guard;
 
     try {
       const pactClient = getClient(chainId);

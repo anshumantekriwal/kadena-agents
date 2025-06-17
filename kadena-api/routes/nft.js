@@ -528,17 +528,26 @@ router.post("/collection", async (req, res) => {
       // Transaction metadata
       const txMeta = createTxMeta(chainId, account);
 
-      // Create transaction using Pact.builder like Kadena examples
-      const pactCommand = Pact.builder
-        .execution(pactCode)
-        .addSigner({
-          pubKey: accountGuard.keys[0],
-          scheme: "ED25519",
-        })
-        .setMeta(txMeta)
-        .setNetworkId(KADENA_NETWORK_ID)
-        .addKeyset("ks", accountGuard.pred, ...accountGuard.keys)
-        .createTransaction();
+      // Create transaction following Kadena examples approach (no capabilities)
+      const pactCommand = {
+        networkId: KADENA_NETWORK_ID,
+        payload: {
+          exec: {
+            data: envData,
+            code: pactCode,
+          },
+        },
+        signers: [
+          {
+            pubKey: accountGuard.keys[0],
+            scheme: "ED25519",
+          },
+        ],
+        meta: txMeta,
+        nonce: `collection:${Date.now()}:${Math.random()
+          .toString(36)
+          .substring(2, 15)}`,
+      };
 
       // Generate transaction hash
       req.logStep("Generating transaction hash");

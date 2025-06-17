@@ -37,6 +37,7 @@ dotenv.config();
 // API configuration
 const API_BASE_URL = "https://kadena-agents.onrender.com";
 let API_KEY = process.env.API_KEY;
+const DATE = new Date().toISOString();
 
 export const chainId = "2";
 export const networkId = "mainnet01";
@@ -591,13 +592,7 @@ async function getBalances(accountName, chainId = "2") {
       );
     }
 
-    return {
-      balances,
-      status: "success",
-      message: `Successfully retrieved ${
-        Object.keys(balances).length
-      } balances`,
-    };
+    return balances;
   } catch (error) {
     if (error instanceof KadenaError) {
       throw error;
@@ -614,31 +609,40 @@ async function getBalances(accountName, chainId = "2") {
   }
 }
 
+// Baseline function for Kadena blockchain transactions
+// This code provides the infrastructure for:
+// 1. Retrieving keys from a protected environment
+// 2. Transaction signing
+// 3. Transaction submission
+// The AI model should focus on implementing the transaction creation logic. The TRANSACTIONS functions will be pre-defined.
+
 /**
  * Main baseline function that orchestrates the entire process
  */
 async function baselineFunction() {
   try {
-    console.log("Retrieving keys from KMS...");
+    // 1. Retrieve keys from KMS
+    console.log("Retrieving keys...");
     const keyPair = await getKeys();
     console.log("Keys retrieved successfully");
 
-    const account = "k:" + keyPair.publicKey;
-    const balances = await getBalances(account);
-    console.log("Balances:", balances);
+    // 2. Load current balances
+    const balances = await getBalances("k:" + keyPair.publicKey);
+    console.log(balances);
 
+    // 3. Create transaction (DCA swap)
     console.log("Creating transaction...");
-    const { transaction } = await swap({
-      tokenInAddress: "coin",
-      tokenOutAddress: "n_582fed11af00dc626812cd7890bb88e72067f28c.bro",
-      account,
-      amountIn: "0.01",
-      slippage: 0.01,
-      chainId: "2",
-    });
+
+    // ENTER AI CODE HERE
+    // END AI CODE
 
     console.log("Transaction created:", transaction);
 
+    if (transaction["transaction"]) {
+      transaction = transaction["transaction"];
+    }
+
+    // 4. Sign the transaction
     console.log("Signing transaction...");
     const signature = await signTransaction(transaction, keyPair);
     console.log("Transaction signed successfully");
@@ -650,17 +654,34 @@ async function baselineFunction() {
       sigs: [signature],
     };
 
-    console.log("Signed transaction:", signedTransaction);
-
+    // 5. Submit the transaction
     console.log("Submitting transaction...");
     const result = await submitTransaction(signedTransaction);
     console.log("Transaction submitted successfully:", result);
 
     return result;
   } catch (error) {
-    console.error("Error in baselineFunction:", error);
+    console.error("Error in baseline function:", error);
     throw error;
   }
 }
 
-baselineFunction();
+
+// const checkSchedule = () => {
+//   const now = new Date();
+//   const utcH = now.getUTCHours();
+//   const utcM = now.getUTCMinutes();
+//   // Convert UTC to IST (UTC+5:30)
+//   const totalMinutes = utcH * 60 + utcM + 5 * 60 + 30;
+//   const istH = Math.floor(totalMinutes / 60) % 24;
+//   const istM = totalMinutes % 60;
+//   if (istH === 13 && istM === 22) {
+//     console.log("It's 1:40 PM IST, running baselineFunction");
+//     baselineFunction();
+//   } else {
+//     console.log(`Not 1:40 PM IST yet. Current IST time: ${istH}:${istM}`);
+//   }
+// };
+
+// Check every minute
+// setInterval(checkSchedule, 60000);

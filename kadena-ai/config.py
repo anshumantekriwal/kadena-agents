@@ -10,7 +10,7 @@ API_KEY = os.getenv("API_KEY")
 
 # OpenAI Model Configuration
 MODEL_NAME = "o4-mini"
-GPT4_MODEL = "gpt-4.1"
+GPT4_MODEL = "gpt-4o-mini"
 
 
 # API documentation
@@ -76,7 +76,7 @@ API_DOCS = {
     
     # NFT launch
     "nft_launch": {
-        "description": "Launch a new NFT on the Kadena blockchain",
+        "description": "Launch a new NFT on the Kadena blockchain. The collectionId should be in the format of collection:id (e.g. collection:1234567890)",
         "required_params": [
             "account",         # Sender account
             "guard",           # Account guard

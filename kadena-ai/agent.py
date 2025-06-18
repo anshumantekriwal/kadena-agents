@@ -53,7 +53,7 @@ class KadenaTransactionTool(BaseTool):
     - guard: Guard object with keys and pred
     - mintTo: Account to mint to (k:account format)
     - uri: IPFS URI or metadata link
-    - collectionId: Collection ID
+    - collectionId: Collection ID (collection:id format. e.g. collection:1234567890)
     - chainId: Chain ID (must be "2")
     - Optional: precision, policy, royalties, royaltyRecipient, name, description
     
@@ -318,6 +318,7 @@ def run_kadena_agent_with_context(query: str, history: List[str] = None) -> Dict
                     4. If applicable, mention any specific requirements or constraints
                     
                     Be empathetic and helpful while maintaining technical accuracy.
+                    Also, return the original error, with all the details.
                     """),
                     ("human", """
                     Transaction Error Details:

@@ -57,14 +57,12 @@ const walletService = {
       }
 
       console.log("Processed transaction command:", txCmd);
-      console.log("txCmd type:", typeof txCmd);
-      console.log("txCmd first 100 chars:", txCmd.substring(0, 100));
 
       // Use the hash from the API response directly - no need to generate it locally now
       const transactionHash = txResponse.transaction.hash;
       console.log("Transaction hash:", transactionHash);
 
-      // Create transaction object using the API response directly
+      // Create a transaction object that matches the format expected by Kadena client
       const transaction = {
         cmd: txCmd,
         hash: transactionHash,
@@ -180,7 +178,6 @@ const walletService = {
         console.log("Formatted signature:", formattedSignature);
 
         // Add signature to the transaction using the addSignatures helper
-        console.log("Transaction being passed to addSignatures:", transaction);
         const signedTx = addSignatures(transaction, signature);
 
         console.log("Signed transaction:", signedTx);

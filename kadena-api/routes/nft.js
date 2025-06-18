@@ -222,18 +222,8 @@ router.post("/launch", async (req, res) => {
       // Generate token ID using Kadena's exact approach
       req.logStep("Generating token ID");
 
-      // Map policy constants to actual policy combinations
-      let policyList;
-      if (policy === "DEFAULT_COLLECTION_NON_UPDATABLE") {
-        policyList =
-          "[marmalade-v2.non-fungible-policy-v1 marmalade-v2.collection-policy-v1]";
-      } else if (policy === "DEFAULT_COLLECTION_ROYALTY_NON_UPDATABLE") {
-        policyList =
-          "[marmalade-v2.non-fungible-policy-v1 marmalade-v2.collection-policy-v1 marmalade-v2.royalty-policy-v1]";
-      } else {
-        // For custom policies, assume it's already a module name
-        policyList = `[${policy}]`;
-      }
+      // Use create-policies function like working examples
+      const policyList = `(create-policies ${JSON.stringify(policy)})`;
 
       // Debug: log the exact Pact code being generated
       const tokenIdPactCode = `(use marmalade-v2.ledger)(use marmalade-v2.util-v1)

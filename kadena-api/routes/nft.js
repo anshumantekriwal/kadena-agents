@@ -275,56 +275,72 @@ router.post("/launch", async (req, res) => {
         tokenId
       )} (read-msg 'mintTo) (at 'guard (coin.details (read-msg 'mintTo))) 1.0)`;
 
-      // Create transaction using Pact.builder approach (like working examples)
+      // Create transaction using the same approach as collection endpoint
       const k = {
         keys: [...accountGuard.keys],
         pred: accountGuard.pred,
       };
 
-      const txMeta = createTxMeta(chainId, account);
-
-      const tx = Pact.builder
-        .execution(pactCode)
-        .addSigner(
-          {
-            pubKey: accountGuard.keys[0],
-            scheme: "ED25519",
-          },
-          (signFor) => [
-            signFor("coin.GAS"),
-            signFor("marmalade-v2.ledger.MINT", tokenId, mintTo, {
-              decimal: "1.0",
-            }),
-            signFor("marmalade-v2.ledger.CREATE-TOKEN", tokenId, k),
-            signFor(
-              "marmalade-v2.collection-policy-v1.TOKEN-COLLECTION",
-              collectionId,
-              tokenId
-            ),
-          ]
-        )
-        .setMeta(txMeta)
-        .setNetworkId(KADENA_NETWORK_ID)
-        .addKeyset("ks", accountGuard.pred, ...accountGuard.keys)
-        .addData("uri", uri.trim())
-        .addData("mintTo", mintTo)
-        .addData("collection_id", collectionId);
+      // Prepare environment data
+      const envData = {
+        ks: accountGuard,
+        uri: uri.trim(),
+        mintTo: mintTo,
+        collection_id: collectionId,
+      };
 
       if ((name || "").trim()) {
-        tx.addData("name", (name || "").trim());
+        envData.name = (name || "").trim();
       }
       if ((description || "").trim()) {
-        tx.addData("description", (description || "").trim());
+        envData.description = (description || "").trim();
       }
 
       if (royalties > 0 && policy.includes("ROYALTY")) {
-        tx.addData("royaltyData", {
+        envData.royaltyData = {
           royalty: royalties / 100,
           recipient: royaltyRecipient,
-        });
+        };
       }
 
-      const pactCommand = tx.createTransaction();
+      // Transaction metadata
+      const txMeta = createTxMeta(chainId, account);
+
+      // Create transaction following collection endpoint approach
+      const pactCommand = {
+        networkId: KADENA_NETWORK_ID,
+        payload: {
+          exec: {
+            data: envData,
+            code: pactCode,
+          },
+        },
+        signers: [
+          {
+            pubKey: accountGuard.keys[0],
+            scheme: "ED25519",
+            clist: [
+              { name: "coin.GAS", args: [] },
+              {
+                name: "marmalade-v2.ledger.MINT",
+                args: [tokenId, mintTo, { decimal: "1.0" }],
+              },
+              {
+                name: "marmalade-v2.ledger.CREATE-TOKEN",
+                args: [tokenId, k],
+              },
+              {
+                name: "marmalade-v2.collection-policy-v1.TOKEN-COLLECTION",
+                args: [collectionId, tokenId],
+              },
+            ],
+          },
+        ],
+        meta: txMeta,
+        nonce: `nft:${Date.now()}:${Math.random()
+          .toString(36)
+          .substring(2, 15)}`,
+      };
 
       // Generate transaction hash
       req.logStep("Generating transaction hash");

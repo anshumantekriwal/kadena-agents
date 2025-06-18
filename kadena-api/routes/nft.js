@@ -326,18 +326,32 @@ router.post("/launch", async (req, res) => {
 
       const pactCommand = tx.createTransaction();
 
+      // Debug: log the transaction structure
+      req.logStep(
+        `Transaction structure: ${JSON.stringify(pactCommand, null, 2)}`
+      );
+
       // Generate transaction hash
       req.logStep("Generating transaction hash");
       const cmdString = JSON.stringify(pactCommand);
       const transactionHash = generateTransactionHash(cmdString);
 
       req.logStep("NFT launch transaction prepared");
+
+      // Return transaction in the format expected by Kadena clients
+      // Note: sigs array should match the number of signers (we have 1 signer)
+      const finalTransaction = {
+        cmd: cmdString,
+        hash: transactionHash,
+        sigs: [null],
+      };
+
+      req.logStep(
+        `Final transaction: ${JSON.stringify(finalTransaction, null, 2)}`
+      );
+
       return res.json({
-        transaction: {
-          cmd: cmdString,
-          hash: transactionHash,
-          sigs: [null],
-        },
+        transaction: finalTransaction,
         tokenId: tokenId,
         metadata: {
           name: name || "",

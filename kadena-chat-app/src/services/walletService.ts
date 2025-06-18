@@ -62,6 +62,39 @@ const walletService = {
       const transactionHash = txResponse.transaction.hash;
       console.log("Transaction hash:", transactionHash);
 
+      // Parse the cmd to get the full transaction object for addSignatures
+      let parsedTransaction;
+      try {
+        parsedTransaction = JSON.parse(txCmd);
+
+        // Check if this is a double-encoded transaction (NFT case)
+        if (
+          parsedTransaction.cmd &&
+          typeof parsedTransaction.cmd === "string" &&
+          !parsedTransaction.signers
+        ) {
+          console.log("Detected double-encoded transaction, parsing inner cmd");
+          // Parse the inner cmd to get the actual transaction with signers
+          try {
+            const innerTransaction = JSON.parse(parsedTransaction.cmd);
+            if (innerTransaction.signers) {
+              parsedTransaction = innerTransaction;
+              console.log("Using inner transaction with signers");
+            }
+          } catch (innerParseError) {
+            console.error("Error parsing inner cmd:", innerParseError);
+          }
+        }
+      } catch (parseError) {
+        console.error("Error parsing transaction cmd:", parseError);
+        // Fallback to the original format if parsing fails
+        parsedTransaction = {
+          cmd: txCmd,
+          hash: transactionHash,
+          sigs: [],
+        };
+      }
+
       // Create a transaction object that matches the format expected by Kadena client
       const transaction = {
         cmd: txCmd,
@@ -70,6 +103,7 @@ const walletService = {
       };
 
       console.log("Transaction to sign:", transaction);
+      console.log("Parsed transaction for addSignatures:", parsedTransaction);
 
       try {
         // Access the Magic wallet properly
@@ -178,7 +212,11 @@ const walletService = {
         console.log("Formatted signature:", formattedSignature);
 
         // Add signature to the transaction using the addSignatures helper
-        const signedTx = addSignatures(transaction, signature);
+        // Use parsedTransaction if it has signers property, otherwise fallback to transaction
+        const txForSigning = parsedTransaction.signers
+          ? parsedTransaction
+          : transaction;
+        const signedTx = addSignatures(txForSigning, signature);
 
         console.log("Signed transaction:", signedTx);
 

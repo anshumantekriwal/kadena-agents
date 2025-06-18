@@ -222,11 +222,26 @@ router.post("/launch", async (req, res) => {
       // Generate token ID using Kadena's exact approach
       req.logStep("Generating token ID");
 
+      // Map policy constants to actual policy combinations
+      let policyList;
+      if (policy === "DEFAULT_COLLECTION_NON_UPDATABLE") {
+        policyList =
+          "[marmalade-v2.non-fungible-policy-v1 marmalade-v2.collection-policy-v1]";
+      } else if (policy === "DEFAULT_COLLECTION_ROYALTY_NON_UPDATABLE") {
+        policyList =
+          "[marmalade-v2.non-fungible-policy-v1 marmalade-v2.collection-policy-v1 marmalade-v2.royalty-policy-v1]";
+      } else {
+        // For custom policies, assume it's already a module name
+        policyList = `[${policy}]`;
+      }
+
+      // Debug: log the exact Pact code being generated
+      const tokenIdPactCode = `(use marmalade-v2.ledger)(use marmalade-v2.util-v1)
+           (create-token-id { 'precision: ${precision}, 'policies: ${policyList}, 'uri: "${uri.trim()}"} (read-keyset 'ks))`;
+      req.logStep(`Token ID Pact code: ${tokenIdPactCode}`);
+
       const tokenIdCmd = Pact.builder
-        .execution(
-          `(use marmalade-v2.ledger)(use marmalade-v2.util-v1)
-           (create-token-id { 'precision: ${precision}, 'policies: (create-policies ${policy}), 'uri: "${uri.trim()}"} (read-keyset 'ks))`
-        )
+        .execution(tokenIdPactCode)
         .setMeta({
           chainId: String(chainId),
           gasLimit: 80000,
@@ -256,7 +271,7 @@ router.post("/launch", async (req, res) => {
 (use marmalade-v2.util-v1)
 (create-token ${JSON.stringify(
         tokenId
-      )} ${precision} (read-msg 'uri) (create-policies ${policy}) (read-keyset 'ks)) (mint ${JSON.stringify(
+      )} ${precision} (read-msg 'uri) ${policyList} (read-keyset 'ks)) (mint ${JSON.stringify(
         tokenId
       )} (read-msg 'mintTo) (at 'guard (coin.details (read-msg 'mintTo))) 1.0)`;
 

@@ -33,3 +33,8 @@ kadena-chat-app/baseline/.env
 kadena.js
 collection.js
 mint.js
+/agent-deployer/baseline/node_modules
+/agent-deployer/node_modules
+agent-deployer/pnpm-lock.yaml
+agent-deployer/baseline/.env
+agent-deployer/.env

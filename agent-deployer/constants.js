@@ -1,4 +1,4 @@
-import { Pact, createClient } from "@kadena/client";
+const codeString = `import { Pact, createClient } from "@kadena/client";
 import dotenv from "dotenv";
 import { kadenaSignWithKeyPair } from "@kadena/hd-wallet";
 // Custom error classes for better error handling
@@ -41,7 +41,7 @@ const DATE = new Date().toISOString();
 
 export const chainId = "2";
 export const networkId = "mainnet01";
-export const rpcUrl = `https://api.chainweb.com/chainweb/0.0/${networkId}/chain/${chainId}/pact`;
+export const rpcUrl = \`https://api.chainweb.com/chainweb/0.0/\${networkId}/chain/\${chainId}/pact\`;
 
 const client = createClient(rpcUrl);
 
@@ -79,7 +79,7 @@ async function makeRequest(endpoint, body) {
       });
     }
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(\`\${API_BASE_URL}\${endpoint}\`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -123,9 +123,9 @@ async function makeRequest(endpoint, body) {
           );
         default:
           throw new KadenaError(
-            `API Error (${response.status}): ${
+            \`API Error (\${response.status}): \${
               errorData.error || response.statusText
-            }`,
+            }\`,
             "API_ERROR",
             errorDetails
           );
@@ -150,7 +150,7 @@ async function makeRequest(endpoint, body) {
       );
     }
 
-    throw new KadenaError(`Request failed: ${error.message}`, "REQUEST_ERROR", {
+    throw new KadenaError(\`Request failed: \${error.message}\`, "REQUEST_ERROR", {
       originalError: error.message,
       endpoint,
       body,
@@ -304,7 +304,7 @@ async function getKeys() {
     if (error instanceof KadenaError) {
       throw error;
     }
-    throw new AuthenticationError(`Failed to retrieve keys: ${error.message}`, {
+    throw new AuthenticationError(\`Failed to retrieve keys: \${error.message}\`, {
       originalError: error.message,
     });
   }
@@ -358,7 +358,7 @@ async function signTransaction(transaction, keyPair) {
     if (error instanceof KadenaError) {
       throw error;
     }
-    throw new TransactionError(`Failed to sign transaction: ${error.message}`, {
+    throw new TransactionError(\`Failed to sign transaction: \${error.message}\`, {
       originalError: error.message,
     });
   }
@@ -429,9 +429,9 @@ async function submitTransaction(signedTransaction) {
             errorMessage = JSON.stringify(response.result.error);
             errorDetails = response.result.error;
           } catch (e) {
-            errorMessage = `Transaction failed: ${
+            errorMessage = \`Transaction failed: \${
               response.result.error.message || "Unknown error"
-            }`;
+            }\`;
             errorDetails = { parseError: e.message };
           }
         }
@@ -450,7 +450,7 @@ async function submitTransaction(signedTransaction) {
       throw error;
     }
     throw new TransactionError(
-      `Failed to submit transaction: ${error.message}`,
+      \`Failed to submit transaction: \${error.message}\`,
       {
         originalError: error.message,
         transaction: signedTransaction,
@@ -461,7 +461,7 @@ async function submitTransaction(signedTransaction) {
 
 async function getBalance(accountName, chainId, tokenName = "coin") {
   try {
-    const moduleAndFunction = `(${tokenName}.get-balance "${accountName}")`;
+    const moduleAndFunction = \`(\${tokenName}.get-balance "\${accountName}")\`;
 
     const transaction = Pact.builder
       .execution(moduleAndFunction)
@@ -479,7 +479,7 @@ async function getBalance(accountName, chainId, tokenName = "coin") {
     }
     return 0;
   } catch (error) {
-    console.error(`Failed to get ${tokenName} balance:`, error);
+    console.error(\`Failed to get \${tokenName} balance:\`, error);
     return 0;
   }
 }
@@ -563,7 +563,7 @@ async function getBalances(accountName, chainId = "2") {
           token,
           error: error.message,
         });
-        console.error(`Error getting balance for ${token}:`, error);
+        console.error(\`Error getting balance for \${token}:\`, error);
         continue;
       }
     }
@@ -574,9 +574,9 @@ async function getBalances(accountName, chainId = "2") {
         balances,
         errors,
         status: "partial",
-        message: `Retrieved ${Object.keys(balances).length} balances with ${
+        message: \`Retrieved \${Object.keys(balances).length} balances with \${
           errors.length
-        } errors`,
+        } errors\`,
       };
     }
 
@@ -598,7 +598,7 @@ async function getBalances(accountName, chainId = "2") {
       throw error;
     }
     throw new KadenaError(
-      `Error getting balances: ${error.message}`,
+      \`Error getting balances: \${error.message}\`,
       "BALANCE_ERROR",
       {
         originalError: error.message,
@@ -608,68 +608,6 @@ async function getBalances(accountName, chainId = "2") {
     );
   }
 }
+`;
 
-async function baselineFunction() {
-  try {
-    // 1. Retrieve keys from KMS
-    console.log("Retrieving keys...");
-    const keyPair = await getKeys();
-    console.log("Keys retrieved successfully");
-
-    // 2. Load current balances
-    const balances = await getBalances("k:" + keyPair.publicKey);
-    console.log(balances);
-
-    // 3. Create transaction (DCA swap)
-    console.log("Creating transaction...");
-
-    // ENTER AI CODE HERE
-    // END AI CODE
-
-    console.log("Transaction created:", transaction);
-
-    if (transaction["transaction"]) {
-      transaction = transaction["transaction"];
-    }
-
-    // 4. Sign the transaction
-    console.log("Signing transaction...");
-    const signature = await signTransaction(transaction, keyPair);
-    console.log("Transaction signed successfully");
-    console.log("Signature:", signature);
-
-    const signedTransaction = {
-      cmd: transaction.cmd,
-      hash: transaction.hash,
-      sigs: [signature],
-    };
-
-    // 5. Submit the transaction
-    console.log("Submitting transaction...");
-    const result = await submitTransaction(signedTransaction);
-    console.log("Transaction submitted successfully:", result);
-
-    return result;
-  } catch (error) {
-    console.error("Error in baseline function:", error);
-    throw error;
-  }
-}
-
-const checkSchedule = () => {
-  const now = new Date();
-  const utcH = now.getUTCHours();
-  const utcM = now.getUTCMinutes();
-  // Convert UTC to IST (UTC+5:30)
-  const totalMinutes = utcH * 60 + utcM + 5 * 60 + 30;
-  const istH = Math.floor(totalMinutes / 60) % 24;
-  const istM = totalMinutes % 60;
-  if (istH === 13 && istM === 22) {
-    console.log("It's 1:40 PM IST, running baselineFunction");
-    baselineFunction();
-  } else {
-    console.log(`Not 1:40 PM IST yet. Current IST time: ${istH}:${istM}`);
-  }
-};
-
-setInterval(checkSchedule, 60000);
+module.exports = codeString;

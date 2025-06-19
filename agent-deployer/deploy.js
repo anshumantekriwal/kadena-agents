@@ -101,7 +101,7 @@ console.log("Agent started successfully - baseline and interval functions are ac
     path.join(buildDir, "Dockerfile"),
     `
 FROM node:22-alpine
-WORKDIR /app
+WORKDIR /
 COPY package.json ./
 RUN npm install --production
 COPY . .

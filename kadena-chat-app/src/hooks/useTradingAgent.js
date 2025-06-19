@@ -1,12 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
-const supabaseUrl = "https://wbsnlpviggcnwqfyfobh.supabase.co";
-const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indic25scHZpZ2djbndxZnlmb2JoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczODc2NTcwNiwiZXhwIjoyMDU0MzQxNzA2fQ.tr6PqbiAXQYSQSpG2wS6I4DZfV1Gc3dLXYhKwBrJLS0";
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from "../lib/supabase";
+import { kadenaTraderApi } from "../services/kadenaTraderApi";
+import { FILE_SIZE_LIMITS, ERROR_MESSAGES } from "../utils/constants";
 
 export const useTradingAgent = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -126,8 +123,8 @@ export const useTradingAgent = () => {
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-      if (file.size > 1024 * 1024) {
-        alert("File size must be less than 1MB");
+      if (file.size > FILE_SIZE_LIMITS.IMAGE) {
+        alert(ERROR_MESSAGES.FILE_TOO_LARGE);
         return;
       }
       setAgentImage(file);
@@ -165,34 +162,16 @@ export const useTradingAgent = () => {
     setReviewEnabled(false);
     setAiJustification("");
     try {
-      const response = await fetch(
-        "https://kadena-trader.onrender.com/prompt",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            prompt:
-              "Name: " +
-              agentName +
-              " Description: " +
-              agentDescription +
-              " Behavior: " +
-              agentBehavior,
-          }),
-        }
-      );
+      const prompt =
+        "Name: " +
+        agentName +
+        " Description: " +
+        agentDescription +
+        " Behavior: " +
+        agentBehavior;
+      const data = await kadenaTraderApi.getPromptRating({ prompt });
 
-      if (!response.ok) throw new Error("Failed to get AI rating");
-      const data = await response.json();
-      let parsed;
-      try {
-        parsed = typeof data === "string" ? JSON.parse(data) : data;
-      } catch (e) {
-        throw new Error("AI response was not valid JSON");
-      }
-      const { rating, justification, questions } = parsed.response;
+      const { rating, justification, questions } = data.response;
       setAiRating(rating);
       setAiJustification(justification || "");
       setFollowUpQuestions(questions || []);
@@ -364,23 +343,16 @@ export const useTradingAgent = () => {
     setIsFetchingAICode(true);
     const sanitizedPrompt = agentBehavior.trim().replace(/\s+/g, " ");
     try {
-      const response = await fetch("https://kadena-trader.onrender.com/code", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt: sanitizedPrompt }),
+      const data = await kadenaTraderApi.getAICode({
+        agentName,
+        agentDescription,
+        agentBehavior: sanitizedPrompt,
+        selectedSources,
+        selectedChains,
       });
-      if (!response.ok) throw new Error("Failed to get code from AI");
-      const data = await response.json();
-      let parsed;
-      try {
-        parsed = typeof data === "string" ? JSON.parse(data) : data;
-      } catch (e) {
-        throw new Error("AI /code response was not valid JSON");
-      }
-      setAiCode(parsed.code || "");
-      setIntervalValue(parsed.interval || null);
+
+      setAiCode(data.code || "");
+      setIntervalValue(data.interval || null);
     } catch (error) {
       setAiCode("");
       setIntervalValue(null);

@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
 const bodyParser = require("body-parser");
 const deployAgent = require("./deploy");
 const {
@@ -10,6 +11,7 @@ const {
 } = require("./logs");
 
 const app = express();
+app.use(cors());
 app.use(bodyParser.json());
 
 // API Key Auth Middleware

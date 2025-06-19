@@ -12,6 +12,7 @@ import "./App.css";
 import { WalletProvider } from "./context/WalletContext";
 import Navbar from "./components/Navbar";
 import AgentLauncher from "./components/agent/AgentLauncher";
+import AgentPage from "./components/agent/AgentPage";
 import Terminal from "./components/terminal/Terminal";
 import WalletInfo from "./components/WalletInfo";
 
@@ -77,6 +78,14 @@ const AppRoutes: React.FC = () => {
           }
         />
         <Route
+          path="/agent/:agentId"
+          element={
+            <ProtectedRoute>
+              <AgentPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/terminal"
           element={
             <ProtectedRoute>
@@ -88,7 +97,7 @@ const AppRoutes: React.FC = () => {
           path="/wallet"
           element={
             <ProtectedRoute>
-              <div style={{ padding: '20px' }}>
+              <div style={{ padding: "20px" }}>
                 <Navbar />
                 <WalletInfo />
               </div>

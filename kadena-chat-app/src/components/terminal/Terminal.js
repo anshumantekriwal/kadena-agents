@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
-import styled from 'styled-components';
-import { createClient } from '@supabase/supabase-js';
-import Navbar from '../Navbar';
+import React, { useState, useRef, useEffect } from "react";
+import styled from "styled-components";
+import Navbar from "../Navbar";
+import { supabase } from "../../lib/supabase";
 
 const Container = styled.div`
   height: 100%;
@@ -20,7 +20,7 @@ const Line = styled.div`
 const Command = styled(Line)`
   color: #64ff64;
   &::before {
-    content: '> ';
+    content: "> ";
   }
 `;
 
@@ -33,10 +33,6 @@ const Timestamp = styled.span`
   margin-left: 10px;
   font-size: 12px;
 `;
-
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseKey = process.env.REACT_APP_SUPABASE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 function Terminal({ selectedAgent = 38 }) {
   const [history, setHistory] = useState([]);
@@ -56,62 +52,68 @@ function Terminal({ selectedAgent = 38 }) {
 
   const fetchAgentNames = async () => {
     try {
-      const { data, error } = await supabase
-        .from('agents2')
-        .select('id, name');
-      
+      const { data, error } = await supabase.from("agents2").select("id, name");
+
       if (error) throw error;
-      
+
       const namesMap = {};
-      data.forEach(agent => {
+      data.forEach((agent) => {
         namesMap[agent.id] = agent.name;
       });
       setAgentNames(namesMap);
     } catch (error) {
-      console.error('Error fetching agent names:', error);
+      console.error("Error fetching agent names:", error);
     }
   };
 
   const fetchCryptoNews = async () => {
     try {
       const options = {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${process.env.REACT_APP_PERPLEXITY_API_KEY}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${process.env.REACT_APP_PERPLEXITY_API_KEY}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           model: "sonar",
           messages: [
             {
               role: "system",
-              content: "You are Alphachad, a degenerate and fun assistant focused on crypto. Give one brief piece of recent crypto news or market update in a degen manner."
+              content:
+                "You are Alphachad, a degenerate and fun assistant focused on crypto. Give one brief piece of recent crypto news or market update in a degen manner.",
             },
-            { 
-              role: "user", 
-              content: "Give me one piece of recent crypto news or market update." 
-            }
-          ]
-        })
+            {
+              role: "user",
+              content:
+                "Give me one piece of recent crypto news or market update.",
+            },
+          ],
+        }),
       };
 
-      const response = await fetch('https://api.perplexity.ai/chat/completions', options);
+      const response = await fetch(
+        "https://api.perplexity.ai/chat/completions",
+        options
+      );
       const data = await response.json();
-      
+
       if (!response.ok) {
-        throw new Error(data.error?.message || 'Failed to get AI response');
+        throw new Error(data.error?.message || "Failed to get AI response");
       }
 
-      setHistory(prev => [...prev, {
-        type: 'output',
-        content: data.choices[0].message.content
-      }]);
+      setHistory((prev) => [
+        ...prev,
+        {
+          type: "output",
+          content: data.choices[0].message.content,
+        },
+      ]);
 
       if (terminalRef.current) {
         terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
       }
     } catch (error) {
-      console.error('Error fetching crypto news:', error);
+      console.error("Error fetching crypto news:", error);
     }
   };
 
@@ -119,22 +121,22 @@ function Terminal({ selectedAgent = 38 }) {
     if (!selectedAgent) return;
 
     const { data: agentsData, error: agentsError } = await supabase
-      .from('terminal2')
-      .select('agent_id, tweet_content, created_at')
-      .eq('agent_id', selectedAgent)
-      .order('created_at', { ascending: false });
+      .from("terminal2")
+      .select("agent_id, tweet_content, created_at")
+      .eq("agent_id", selectedAgent)
+      .order("created_at", { ascending: false });
 
     if (agentsError) {
-      console.error('Error fetching messages:', agentsError);
+      console.error("Error fetching messages:", agentsError);
       return;
     }
 
     if (agentsData) {
-      const messages = agentsData.map(item => ({
-        type: 'output',
+      const messages = agentsData.map((item) => ({
+        type: "output",
         agentId: item.agent_id,
         content: item.tweet_content,
-        timestamp: new Date(item.created_at)
+        timestamp: new Date(item.created_at),
       }));
       setHistory(messages);
     }
@@ -146,12 +148,16 @@ function Terminal({ selectedAgent = 38 }) {
       <Container ref={terminalRef}>
         {history.map((entry, index) => (
           <div key={index}>
-            {entry.type === 'input' ? (
+            {entry.type === "input" ? (
               <Command>{entry.content}</Command>
             ) : (
               <Output>
-                <span style={{ color: '#64ff64' }}>
-                  {entry.type === 'input' ? '> ' : `${agentNames[entry.agentId] || `Agent ${entry.agentId}`}: `}
+                <span style={{ color: "#64ff64" }}>
+                  {entry.type === "input"
+                    ? "> "
+                    : `${
+                        agentNames[entry.agentId] || `Agent ${entry.agentId}`
+                      }: `}
                 </span>
                 {entry.content}
                 {entry.timestamp && (

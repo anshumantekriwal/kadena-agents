@@ -14,6 +14,12 @@ export const API_ENDPOINTS = {
     "https://kadena-trader.onrender.com",
   CHAINWEB: "https://api.chainweb.com",
   PERPLEXITY: "https://api.perplexity.ai/chat/completions",
+  TATUM: "https://api.tatum.io/v4",
+} as const;
+
+// API Keys
+export const API_KEYS = {
+  TATUM: process.env.REACT_APP_TATUM_API_KEY || "",
 } as const;
 
 // Common error messages

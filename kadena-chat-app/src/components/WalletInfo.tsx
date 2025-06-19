@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useWallet } from "../context/WalletContext";
 import { tokens } from "../utils/tokens";
 import { supabase } from "../lib/supabase";
+import { useNavigate } from "react-router-dom";
 import "./WalletInfo.css";
 
 interface AgentBalance {
@@ -20,7 +21,10 @@ const WalletInfo: React.FC = () => {
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [userAgents, setUserAgents] = useState<any[]>([]);
   const [loadingAgents, setLoadingAgents] = useState(false);
-  const [agentBalances, setAgentBalances] = useState<Record<string, AgentBalance[]>>({});
+  const [agentBalances, setAgentBalances] = useState<
+    Record<string, AgentBalance[]>
+  >({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user?.accountName) {
@@ -30,19 +34,19 @@ const WalletInfo: React.FC = () => {
 
   const fetchUserAgents = async () => {
     if (!user?.accountName) return;
-    
+
     setLoadingAgents(true);
     try {
       const { data, error } = await supabase
-        .from('agents2')
-        .select('*')
-        .eq('user_id', user.accountName);
-      
+        .from("kadena-agents")
+        .select("*")
+        .eq("user_id", user.accountName);
+
       if (error) {
-        console.error('Supabase error:', error);
+        console.error("Supabase error:", error);
         throw error;
       }
-      
+
       setUserAgents(data || []);
       // Fetch balances for each agent
       if (data) {
@@ -50,14 +54,21 @@ const WalletInfo: React.FC = () => {
         for (const agent of data) {
           if (agent.agent_wallet) {
             try {
-              const response = await fetch(`https://api.chainweb.com/chainweb/0.0/mainnet01/chain/2/account/${agent.agent_wallet}/balance`);
-              const data = await response.json() as ChainwebBalance;
-              balances[agent.id] = Object.entries(data).map(([symbol, balance]) => ({
-                symbol,
-                balance: balance.toString()
-              }));
+              const response = await fetch(
+                `https://api.chainweb.com/chainweb/0.0/mainnet01/chain/2/account/${agent.agent_wallet}/balance`
+              );
+              const data = (await response.json()) as ChainwebBalance;
+              balances[agent.id] = Object.entries(data).map(
+                ([symbol, balance]) => ({
+                  symbol,
+                  balance: balance.toString(),
+                })
+              );
             } catch (err) {
-              console.error(`Error fetching balances for agent ${agent.id}:`, err);
+              console.error(
+                `Error fetching balances for agent ${agent.id}:`,
+                err
+              );
               balances[agent.id] = [];
             }
           }
@@ -65,7 +76,7 @@ const WalletInfo: React.FC = () => {
         setAgentBalances(balances);
       }
     } catch (err) {
-      console.error('Error fetching user agents:', err);
+      console.error("Error fetching user agents:", err);
     } finally {
       setLoadingAgents(false);
     }
@@ -86,6 +97,10 @@ const WalletInfo: React.FC = () => {
     return token?.name || symbol;
   };
 
+  const handleViewDashboard = (agentId: string) => {
+    navigate(`/agent/${agentId}`);
+  };
+
   const accountName = user?.accountName;
   const publicKey = user?.publicKey;
 
@@ -96,7 +111,8 @@ const WalletInfo: React.FC = () => {
   return (
     <div className="wallet-info">
       <div className="chain-warning">
-        ⚠️ AgentK is on Kadena Chain 2 - Make sure to only deposit on mainnet chain 2
+        ⚠️ AgentK is on Kadena Chain 2 - Make sure to only deposit on mainnet
+        chain 2
       </div>
       <h3>
         <span>Kadena Wallet</span>
@@ -175,16 +191,29 @@ const WalletInfo: React.FC = () => {
                   <div className="agent-details">
                     <div className="agent-name">{agent.name}</div>
                     <div className="agent-description">{agent.description}</div>
+                    <div className="agent-status">
+                      <span
+                        className={`status-indicator ${
+                          agent.agent_deployed ? "deployed" : "pending"
+                        }`}
+                      >
+                        {agent.agent_deployed ? "✅ Deployed" : "⏳ Pending"}
+                      </span>
+                    </div>
                     {agent.agent_wallet && (
                       <div className="agent-wallet">
                         <span className="wallet-label">Agent Wallet:</span>
-                        <span className="wallet-address">{agent.agent_wallet}</span>
+                        <span className="wallet-address">
+                          {agent.agent_wallet}
+                        </span>
                         <button
-                          onClick={() => copyToClipboard(agent.agent_wallet, 'agent-wallet')}
+                          onClick={() =>
+                            copyToClipboard(agent.agent_wallet, "agent-wallet")
+                          }
                           className="copy-button"
                           title="Copy wallet address"
                         >
-                          {copiedText === 'agent-wallet' ? '✓' : '📋'}
+                          {copiedText === "agent-wallet" ? "✓" : "📋"}
                         </button>
                       </div>
                     )}
@@ -193,34 +222,51 @@ const WalletInfo: React.FC = () => {
                         <span className="wallet-label">Private Key:</span>
                         <span className="wallet-address">••••••••••••••••</span>
                         <button
-                          onClick={() => copyToClipboard(agent.agent_privatekey, 'agent-private-key')}
+                          onClick={() =>
+                            copyToClipboard(
+                              agent.agent_privatekey,
+                              "agent-private-key"
+                            )
+                          }
                           className="copy-button"
                           title="Copy private key"
                         >
-                          {copiedText === 'agent-private-key' ? '✓' : '🔑'}
+                          {copiedText === "agent-private-key" ? "✓" : "🔑"}
                         </button>
                       </div>
                     )}
-                    {agentBalances[agent.id] && agentBalances[agent.id].length > 0 && (
-                      <div className="agent-balances">
-                        <span className="wallet-label">Agent Balances:</span>
-                        <div className="agent-balances-list">
-                          {agentBalances[agent.id].map((balance) => (
-                            <div key={balance.symbol} className="agent-balance-item">
-                              <div className="token-avatar small">
-                                {balance.symbol.charAt(0).toUpperCase()}
+                    {agentBalances[agent.id] &&
+                      agentBalances[agent.id].length > 0 && (
+                        <div className="agent-balances">
+                          <span className="wallet-label">Agent Balances:</span>
+                          <div className="agent-balances-list">
+                            {agentBalances[agent.id].map((balance) => (
+                              <div
+                                key={balance.symbol}
+                                className="agent-balance-item"
+                              >
+                                <div className="token-avatar small">
+                                  {balance.symbol.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="balance-value">
+                                  <span>{balance.balance}</span>
+                                  <span className="token-symbol">
+                                    {balance.symbol} •{" "}
+                                    {getTokenName(balance.symbol)}
+                                  </span>
+                                </div>
                               </div>
-                              <div className="balance-value">
-                                <span>{balance.balance}</span>
-                                <span className="token-symbol">
-                                  {balance.symbol} • {getTokenName(balance.symbol)}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    <button
+                      onClick={() => handleViewDashboard(agent.id)}
+                      className="view-dashboard-button"
+                      title="View Agent Dashboard"
+                    >
+                      📊 View Dashboard
+                    </button>
                   </div>
                 </div>
               ))}
@@ -228,7 +274,11 @@ const WalletInfo: React.FC = () => {
           )}
         </div>
       </div>
-      <button className="logout-button" onClick={logout} style={{ marginTop: '1rem', width: '100%' }}>
+      <button
+        className="logout-button"
+        onClick={logout}
+        style={{ marginTop: "1rem", width: "100%" }}
+      >
         Logout
       </button>
     </div>

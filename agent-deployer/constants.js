@@ -381,10 +381,7 @@ async function submitTransaction(signedTransaction) {
       });
     }
 
-    console.log(
-      "Submitting transaction to Kadena blockchain:",
-      signedTransaction
-    );
+    console.log("Submitting transaction to Kadena blockchain");
 
     let transactionDescriptor;
     try {
@@ -396,8 +393,6 @@ async function submitTransaction(signedTransaction) {
       });
     }
 
-    console.log("Transaction descriptor:", transactionDescriptor);
-
     let response;
     try {
       response = await client.listen(transactionDescriptor);
@@ -408,7 +403,7 @@ async function submitTransaction(signedTransaction) {
       });
     }
 
-    console.log("Transaction response:", response);
+    console.log("Transaction response:", response.result.status);
 
     if (response.result.status === "success") {
       return {

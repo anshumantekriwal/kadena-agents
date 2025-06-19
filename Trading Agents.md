@@ -48,12 +48,12 @@ graph TD;
         D -- "Ratings & Questions" --> B;
         C -- "Save to DB" --> E[Supabase DB];
         C -- "API Call" --> D;
-        F[4. Trigger Deployment] -- "Reads from DB" --> E;
+        F[Trigger Deployment] -- "Reads from DB" --> E;
         F -- "Deploy Command" --> G[agent-deployer];
     end
 
     subgraph "Cloud Infrastructure (AWS)"
-        G -- "Provisions" --> H[5. Deployed Agent on App Runner];
+        G -- "Provisions" --> H[ Deployed Agent on App Runner];
     end
 
     subgraph "Blockchain"

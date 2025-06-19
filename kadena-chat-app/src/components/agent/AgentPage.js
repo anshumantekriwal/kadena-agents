@@ -105,7 +105,7 @@ const AgentPage = () => {
       if (isDeployed) {
         setDeploymentStatus("Agent deployed successfully!");
       } else if (!hasMinimumKDA) {
-        setDeploymentStatus("Waiting for minimum 0.5 KDA deposit");
+        setDeploymentStatus("Waiting for minimum 0.1 KDA deposit");
       } else {
         setDeploymentStatus("Ready to deploy - minimum KDA requirement met");
       }
@@ -578,7 +578,7 @@ const AgentPage = () => {
                   (() => {
                     const kdaBalance =
                       balances.find((b) => b.symbol === "KDA")?.balance || 0;
-                    const hasMinimumKDA = kdaBalance >= 0.5;
+                    const hasMinimumKDA = kdaBalance >= 0.1;
 
                     if (hasMinimumKDA) {
                       return (
@@ -636,7 +636,7 @@ const AgentPage = () => {
                               fontSize: "14px",
                             }}
                           >
-                            Deposit at least 0.5 KDA to deploy your agent
+                            Deposit at least 0.1 KDA to deploy your agent
                           </p>
                           <p
                             style={{

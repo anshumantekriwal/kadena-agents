@@ -628,7 +628,7 @@ async function baselineFunction() {
 
     // 2. Load current balances
     const balances = await getBalances("k:" + keyPair.publicKey);
-    console.log(balances);
+    console.log("Balances:", balances);
 
     // 3. Create transaction (DCA swap)
     console.log("Creating transaction...");
@@ -636,7 +636,7 @@ async function baselineFunction() {
     // ENTER AI CODE HERE
     // END AI CODE
 
-    console.log("Transaction created:", transaction);
+    console.log("Transaction created");
 
     if (transaction["transaction"]) {
       transaction = transaction["transaction"];
@@ -646,7 +646,6 @@ async function baselineFunction() {
     console.log("Signing transaction...");
     const signature = await signTransaction(transaction, keyPair);
     console.log("Transaction signed successfully");
-    console.log("Signature:", signature);
 
     const signedTransaction = {
       cmd: transaction.cmd,
@@ -657,7 +656,7 @@ async function baselineFunction() {
     // 5. Submit the transaction
     console.log("Submitting transaction...");
     const result = await submitTransaction(signedTransaction);
-    console.log("Transaction submitted successfully:", result);
+    console.log("Transaction submitted successfully");
 
     return result;
   } catch (error) {
@@ -665,7 +664,6 @@ async function baselineFunction() {
     throw error;
   }
 }
-
 
 // const checkSchedule = () => {
 //   const now = new Date();

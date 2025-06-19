@@ -43,7 +43,6 @@ def code(prompt: str) -> Dict[str, Any]:
     You will be writing code in JavaScript.
     
     You will be provided with a prompt containing all the information required to handle and execute the trading position.
-    You will be provided with the user's account details. You will also be provided with the balances of all the user's tokens.
     You will have access to all the functions you may need to include to achieve this task as well.
 
     Here are some resources to help you in your task:
@@ -80,6 +79,7 @@ def code(prompt: str) -> Dict[str, Any]:
       - Use the TRANSACTIONS USAGE to understand how to call the various functions.
       - Input the code to create the transaction in the function provided. Input it in the area de-marked for you to do so.
       - Do not change any other code in the function. You can define variables wherever you want.
+      - Iterate over the code to verify that the code is correct and does not have any silly errors.
       - Special Case:
         a) If the user asks you for the value or price of a token, use the quotes transaction tool to get the price of the token.
         b) if the user asks for a value of any token, return it in terms of KDA and if they ask for vlaue of KDA, return in terms of zUSD.
@@ -98,7 +98,7 @@ def code(prompt: str) -> Dict[str, Any]:
      Output Format:
      > - Output Structured JSON with only the following keys:
      > - code (the code for baseline function)
-     > - interval (code to call/execute the baseline function at the time orinterval specified by the user)
+     > - interval (code to call/execute the baseline function at the time or interval specified by the user)
      
      Notes:
           > - The user will not be involved in the execution. Thus, you must write impeccable code.

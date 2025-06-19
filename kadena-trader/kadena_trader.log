@@ -10,3 +10,129 @@
 2025-05-14 23:18:22,504 - __main__ - INFO - Processing prompt request: A DCA trading agent that buys 1 USD using KDA every 30 minutes at market price if the value of 1KDA ...
 2025-05-14 23:18:32,436 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
 2025-05-14 23:18:32,464 - __main__ - INFO - Prompt processing completed successfully
+2025-06-20 00:32:02,361 - __main__ - INFO - Generating code for prompt: Buy 0.1 USD using KDA every 30 minutes if the price of KDA is over $0.40. Begin execution in 1 minut...
+2025-06-20 00:32:03,702 - __main__ - ERROR - Error generating code: Invalid template: {"\nYou are <Agent K0>, a trading agent launcher created by Xade.\n\nYou are tasked with helping users create prompts to launch trading agents on the Kadena blockchain.\n\nYou will be called repeatedly until the prompt is acceptable. Each time you receive:\n  - A full draft of the user's system prompt (their new version or their previous one along with answers to your questions)\n  - Any previous dialogue about the prompt\n  - The same context inputs:\n    - Agent Name\n    - Agent Description\n    - Trading Strategy\n\nBased on the same, you will assing a rating to the prompt on a scale of 1-10.\nAdditionally, you will provide a list of questions that the user should address with the prompt.\n     \nPrevious Dialogue:\n{HISTORY}\n\nHere are some resources to help you in your task:\n  1. Documentation for Tokens:\n    {TOKENS}\n  This documentation contains information about all the tokens on the Kadena blockchain, so you can validate any on-chain addresses or symbols the user provides.\n  Assume that whenever USD is mentioned, the user is referring to zUSD.\n  2. Onchain Information:\n  The agent will be working on the Kadena blockchain (mainnet01) on Chain ID 2. The DEX used will be Agent K, a custom DEX built by Xade. Do not ask questions about this.\n\nWhen you are provided the prompt:\n1. Evaluate the draft prompt for clarity and fitness to its specific strategy. (A DCA agent requires very few parameters, while a complex momentum trading agent requires many parameters)\n2. Assign a score (1–10) based only on clarity of intent and requirements. Do NOT be strict with the score.\n3. Justify your score in one concise sentence.  \n4. Ask only the follow-up questions necessary to fill gaps that may not allow generation of code to autonomously execute the trading position.\n\nOutput Format: \n> - Output Structured JSON with only the following keys:\n> - rating (number between 1 and 10)\n> - justification (one sentence explanation of your score)\n> - questions (list of questions)\n\n> **Notes:**\n> - Authentication and transaction signing is handled later; omit related questions.  \n> - All the handling of execution-failure and other such issues is handled directly by Xade. Do not bother the user with such issues.\n> - Limit questions to the clarity of the prompt.\n> - Avoid over-engineering: for simple strategies, skip irrelevant details.  \n> - Be consistent with your ratings.\n"}
+Traceback (most recent call last):
+  File "/Users/anshumantekriwal/Desktop/Xade/kadena-agents/kadena-trader/api.py", line 90, in generate_code
+    result = code(prompt=request.prompt)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/Desktop/Xade/kadena-agents/kadena-trader/coder.py", line 131, in code
+    prompt_template = ChatPromptTemplate.from_messages([
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/prompts/chat.py", line 1167, in from_messages
+    return cls(messages, template_format=template_format)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/prompts/chat.py", line 949, in __init__
+    _messages = [
+                ^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/prompts/chat.py", line 950, in <listcomp>
+    _convert_to_message_template(message, template_format)
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/prompts/chat.py", line 1443, in _convert_to_message_template
+    _message = _create_template_from_message_type(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/prompts/chat.py", line 1350, in _create_template_from_message_type
+    message = SystemMessagePromptTemplate.from_template(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/prompts/chat.py", line 528, in from_template
+    raise ValueError(msg)
+ValueError: Invalid template: {"\nYou are <Agent K0>, a trading agent launcher created by Xade.\n\nYou are tasked with helping users create prompts to launch trading agents on the Kadena blockchain.\n\nYou will be called repeatedly until the prompt is acceptable. Each time you receive:\n  - A full draft of the user's system prompt (their new version or their previous one along with answers to your questions)\n  - Any previous dialogue about the prompt\n  - The same context inputs:\n    - Agent Name\n    - Agent Description\n    - Trading Strategy\n\nBased on the same, you will assing a rating to the prompt on a scale of 1-10.\nAdditionally, you will provide a list of questions that the user should address with the prompt.\n     \nPrevious Dialogue:\n{HISTORY}\n\nHere are some resources to help you in your task:\n  1. Documentation for Tokens:\n    {TOKENS}\n  This documentation contains information about all the tokens on the Kadena blockchain, so you can validate any on-chain addresses or symbols the user provides.\n  Assume that whenever USD is mentioned, the user is referring to zUSD.\n  2. Onchain Information:\n  The agent will be working on the Kadena blockchain (mainnet01) on Chain ID 2. The DEX used will be Agent K, a custom DEX built by Xade. Do not ask questions about this.\n\nWhen you are provided the prompt:\n1. Evaluate the draft prompt for clarity and fitness to its specific strategy. (A DCA agent requires very few parameters, while a complex momentum trading agent requires many parameters)\n2. Assign a score (1–10) based only on clarity of intent and requirements. Do NOT be strict with the score.\n3. Justify your score in one concise sentence.  \n4. Ask only the follow-up questions necessary to fill gaps that may not allow generation of code to autonomously execute the trading position.\n\nOutput Format: \n> - Output Structured JSON with only the following keys:\n> - rating (number between 1 and 10)\n> - justification (one sentence explanation of your score)\n> - questions (list of questions)\n\n> **Notes:**\n> - Authentication and transaction signing is handled later; omit related questions.  \n> - All the handling of execution-failure and other such issues is handled directly by Xade. Do not bother the user with such issues.\n> - Limit questions to the clarity of the prompt.\n> - Avoid over-engineering: for simple strategies, skip irrelevant details.  \n> - Be consistent with your ratings.\n"}
+2025-06-20 00:33:06,256 - __main__ - INFO - Generating code for prompt: Buy 0.1 USD using KDA every 30 minutes if the price of KDA is over $0.40. Begin execution in 1 minut...
+2025-06-20 00:33:07,519 - __main__ - ERROR - Error generating code: 'HISTORY'
+Traceback (most recent call last):
+  File "/Users/anshumantekriwal/Desktop/Xade/kadena-agents/kadena-trader/api.py", line 90, in generate_code
+    result = code(prompt=request.prompt)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/Desktop/Xade/kadena-agents/kadena-trader/coder.py", line 136, in code
+    formatted_prompt = prompt_template.format(
+                       ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/prompts/chat.py", line 703, in format
+    return self.format_prompt(**kwargs).to_string()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/prompts/chat.py", line 726, in format_prompt
+    messages = self.format_messages(**kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/prompts/chat.py", line 1187, in format_messages
+    message = message_template.format_messages(**kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/prompts/chat.py", line 559, in format_messages
+    return [self.format(**kwargs)]
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/prompts/chat.py", line 592, in format
+    text = self.prompt.format(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/prompts/prompt.py", line 186, in format
+    return DEFAULT_FORMATTER_MAPPING[self.template_format](self.template, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/3.11.0/lib/python3.11/string.py", line 190, in format
+    return self.vformat(format_string, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/utils/formatting.py", line 33, in vformat
+    return super().vformat(format_string, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/3.11.0/lib/python3.11/string.py", line 194, in vformat
+    result, _ = self._vformat(format_string, args, kwargs, used_args, 2)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/3.11.0/lib/python3.11/string.py", line 234, in _vformat
+    obj, arg_used = self.get_field(field_name, args, kwargs)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/3.11.0/lib/python3.11/string.py", line 299, in get_field
+    obj = self.get_value(first, args, kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/3.11.0/lib/python3.11/string.py", line 256, in get_value
+    return kwargs[key]
+           ~~~~~~^^^^^
+KeyError: 'HISTORY'
+2025-06-20 00:35:30,785 - __main__ - INFO - Generating code for prompt: Buy 0.1 USD using KDA every 30 minutes if the price of KDA is over $0.40. Begin execution in 1 minut...
+2025-06-20 00:35:30,860 - __main__ - ERROR - Error generating code: 'HISTORY'
+Traceback (most recent call last):
+  File "/Users/anshumantekriwal/Desktop/Xade/kadena-agents/kadena-trader/api.py", line 90, in generate_code
+    result = code(prompt=request.prompt)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/Desktop/Xade/kadena-agents/kadena-trader/coder.py", line 136, in code
+    formatted_prompt = prompt_template.format(
+                       ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/prompts/chat.py", line 703, in format
+    return self.format_prompt(**kwargs).to_string()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/prompts/chat.py", line 726, in format_prompt
+    messages = self.format_messages(**kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/prompts/chat.py", line 1187, in format_messages
+    message = message_template.format_messages(**kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/prompts/chat.py", line 559, in format_messages
+    return [self.format(**kwargs)]
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/prompts/chat.py", line 592, in format
+    text = self.prompt.format(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/prompts/prompt.py", line 186, in format
+    return DEFAULT_FORMATTER_MAPPING[self.template_format](self.template, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/3.11.0/lib/python3.11/string.py", line 190, in format
+    return self.vformat(format_string, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/xade-ai/lib/python3.11/site-packages/langchain_core/utils/formatting.py", line 33, in vformat
+    return super().vformat(format_string, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/3.11.0/lib/python3.11/string.py", line 194, in vformat
+    result, _ = self._vformat(format_string, args, kwargs, used_args, 2)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/3.11.0/lib/python3.11/string.py", line 234, in _vformat
+    obj, arg_used = self.get_field(field_name, args, kwargs)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/3.11.0/lib/python3.11/string.py", line 299, in get_field
+    obj = self.get_value(first, args, kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anshumantekriwal/.pyenv/versions/3.11.0/lib/python3.11/string.py", line 256, in get_value
+    return kwargs[key]
+           ~~~~~~^^^^^
+KeyError: 'HISTORY'
+2025-06-20 00:35:39,126 - __main__ - INFO - Generating code for prompt: Buy 0.1 USD using KDA every 30 minutes if the price of KDA is over $0.40. Begin execution in 1 minut...
+2025-06-20 00:36:00,166 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-20 00:36:00,519 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-20 00:38:42,786 - __main__ - INFO - Code generation completed successfully
+2025-06-20 00:43:41,749 - __main__ - INFO - Generating code for prompt: Buy 0.1 USD using KDA every 30 minutes if the price of KDA is over $0.40. Begin execution in 1 minut...
+2025-06-20 00:44:25,390 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-20 00:44:33,508 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-20 00:44:33,524 - __main__ - INFO - Code generation completed successfully

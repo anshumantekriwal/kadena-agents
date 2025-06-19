@@ -1,20 +1,19 @@
 import os
 import json
-import requests
-from typing import Dict, List, Any, Optional, Union, Tuple
-
-# LangChain imports
-from langchain.agents import Tool, AgentExecutor, create_openai_functions_agent
-from langchain.memory import ConversationBufferMemory
-from langchain.schema import SystemMessage, HumanMessage
+from typing import Dict, Any
 from langchain_openai import ChatOpenAI
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.chat_history import BaseChatMessageHistory
-from langchain_community.chat_message_histories import ChatMessageHistory
-from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_deepseek import ChatDeepSeek
+from langchain.prompts import ChatPromptTemplate
+import re
+import json
+import esprima
+from langchain.prompts import ChatPromptTemplate
+from langchain.schema import HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
+
 # Set your OpenAI API key
 from dotenv import load_dotenv
-from variables import TRANSACTIONS_CODE, TRANSACTIONS_USAGE, TOKENS, BASELINE_JS, PREDEFINED_PARAMETERS
+from variables import TRANSACTIONS_CODE, TRANSACTIONS_USAGE, TOKENS, BASELINE_JS, PREDEFINED_PARAMETERS, CODER_PROMPT
 
 # Load environment variables from .env file
 load_dotenv()
@@ -22,98 +21,116 @@ load_dotenv()
 # Get OpenAI API key from environment variables
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
-def code(prompt: str) -> Dict[str, Any]:
-    """
-    Generate code for a trading agent based on the provided prompt.
+
+def _syntax_check(js_code: str) -> str | None:
+    """Parse with esprima to catch syntax errors."""
+    print("🔍 Running syntax check…")
+    try:
+        esprima.parseScript(js_code)
+        print("✅ Syntax looks good")
+        return None
+    except Exception as e:
+        err = str(e).split("\n")[0]
+        print(f"❌ Syntax error: {err}")
+        return err
     
-    Args:
-        prompt: The trading agent prompt to generate code for
-        
-    Returns:
-        Dict containing the generated code and execution interval
+def _lint_check(js_code: str) -> str | None:
     """
+    Shallow lint via regex:
+      - const reassignment
+      - missing await in async functions
+      - suspicious comparison operators
+    """
+    print("🔍 Running lint check…")
+    errors = []
+
+    # 1) const reassignment
+    for const_match in re.finditer(r'\bconst\s+([A-Za-z_$][0-9A-Za-z_$]*)', js_code):
+        name = const_match.group(1)
+        # look for a second assignment to that name
+        # ignore the declaration line
+        rest = js_code[const_match.end():]
+        if re.search(rf'\b{name}\s*=', rest):
+            errors.append(f"Cannot reassign const `{name}`")
+
+    # 2) missing await for async calls
+    async_funcs = re.findall(r'async function\s+([A-Za-z_$][0-9A-Za-z_$]*)', js_code)
+    for fn in async_funcs:
+        # if the function is invoked but never awaited
+        calls = re.findall(rf'\b{fn}\(', js_code)
+        awaited = re.findall(rf'await\s+{fn}\(', js_code)
+        if calls and not awaited:
+            errors.append(f"Missing `await` for `{fn}()` call")
+
+    # 3) wrong comparison direction (e.g. `>` instead of `<`) — heuristic
+    # If both `price > number` and `price < number` appear, warn
+    if "price" in js_code:
+        gt = bool(re.search(r'\bprice\W*>\W*\d', js_code))
+        lt = bool(re.search(r'\bprice\W*<\W*\d', js_code))
+        if gt and lt:
+            errors.append("Suspicious: both `price > x` and `price < y` found")
+
+    if errors:
+        print(f"❌ Lint issues found ({len(errors)}):", errors)
+        return "\n".join(errors)
+    print("✅ Lint looks good (shallow checks)")
+    return None
+
+
+def _invoke_guardrail(original: dict, syntax_err: str | None, lint_err: str | None) -> dict:
+    print("🤖 Invoking guardrail model…")
+    guard = ChatOpenAI(model="gpt-4o")
+    system = SystemMessage(
+"""
+You are a JavaScript code specialist whose sole job is to correct and refine trading-agent snippets.
+
+You will receive JSON with these fields:
+  • code       — the body of an async function baselineFunction()
+  • interval   — the code that schedules baselineFunction()
+
+You may also receive:
+  • syntax_errors — a string describing any parser errors
+  • lint_errors   — a string describing any lint warnings
+
+Your job is to ensure that there are no errors in the code or logic and correct any issues/mistakes.
+Do not change the code unnecessarily, but fix any issues/mistakes.
+Ignore any undefined-reference errors (those functions live elsewhere).
+For any linting errors, consider whether the error is significant enough to break the code. If it is, fix it. If it is not, ignore it.
+
+If there are no errors, simply return the original code and interval.
+If there are errors, fix them and return the corrected code and interval.
+
+
+Output valid JSON with **only** `code` and `interval` fields.
+Do NOT include any markdown, comments, or extra keys—just the JSON.
+
+Output Format:
+```json
+       {
+         "code": "<corrected baselineFunction()>",
+         "interval": "<corrected interval scheduling code>"
+       }
+```
+"""
+    )
+    human = HumanMessage(
+        f"Here is the code:\n```js\n{original['code']}\n```\n"
+        f"Here is the interval:\n```js\n{original['interval']}\n```\n\n"
+        f"Syntax errors: {syntax_err or 'None'}\n"
+        f"Lint errors: {lint_err or 'None'}\n\n"
+    )
+    resp = guard.invoke([system, human]).content.strip()
+    # strip markdown fences if present
+    if resp.startswith("```"):
+        resp = resp.strip("```json").strip("```").strip()
+    return json.loads(resp)
+
+
+def code(prompt: str) -> Dict[str, Any]:
     model = ChatOpenAI(model="o4-mini")
 
     prompt_template = ChatPromptTemplate.from_messages([
-    ("system", """
-    You are <Agent K1>, a trading agent launcher created by Xade.
-
-    Your task is to generate code to run on a serverless function to execute a user's trading positions on the Kadena Blockchain.
-    You will be working only on mainnet01 and chain ID 2.
-    You will be writing code in JavaScript.
-    
-    You will be provided with a prompt containing all the information required to handle and execute the trading position.
-    You will have access to all the functions you may need to include to achieve this task as well.
-
-    Here are some resources to help you in your task:
-      1. Transactions Documentation:
-        {TRANSACTIONS_CODE}
-        This snippet contains the docstring of functions to call the Transactions API to generate unsigned transactions. 
-        These functuons will be pre-defined. You need to use them to generate transactions.
-      2. Transactions Usage:
-        {TRANSACTIONS_USAGE}
-        This contains examples to call/access the various endpoints of the Transactions API.
-      3. Documentation for Tokens:
-        {TOKENS}
-        This documentation contains information about all the tokens on the Kadena Blockchain.
-     4. Predefined Parameters:
-        {PREDEFINED_PARAMETERS}
-        This documentation contains information about some variables that are predefined within the execution environment.
-    
-    Here are some rules to follow:
-      1. Do not access any external JavaScript libraries/packages. This may cause the script to fail.
-      2. Use the DATE variable to get the current date and time, nothing else.
-      3. Whenever USD is mentioned, assume it is zUSD.
-      4. Always output the entire the baselineFunction().
-
-    When a user prompt arrives:
-    1. Analyze requirements:
-      - Use the TOKENS documentation to validate any symbols or coins or addresses that the user provides.
-      - Use the TRANSACTIONS CODE to understand the required functions and parameters.
-      - Analyze the user's prompt to understand the steps required to execute the trading position.
-      - Create a step-by-step plan to execute the trading position.
-    2. Generate code:
-      - Create a function for each step in the plan.
-      - Hardcode all the parameters for each function based on the requirements, since all the parameters are known.
-      - Use logic and knowledge of JavaScript syntax to write high-quality, efficient code for each function.
-      - Use the TRANSACTIONS USAGE to understand how to call the various functions.
-      - Input the code to create the transaction in the function provided. Input it in the area de-marked for you to do so.
-      - Do not change any other code in the function. You can define variables wherever you want.
-      - Iterate over the code to verify that the code is correct and does not have any silly errors.
-      - Special Case:
-        a) If the user asks you for the value or price of a token, use the quotes transaction tool to get the price of the token.
-        b) if the user asks for a value of any token, return it in terms of KDA and if they ask for vlaue of KDA, return in terms of zUSD.
-     3. Generate code to execute baselineFunction() at a specified time or interval:
-      - Extract the execution time or interval provided by the user.
-      - If the user provides a specific time, set baselineFunction() to run recurringly at that time.
-      - If the user provides an interval, set baselineFunction() to run recurringly at that interval.
-      - Use the Date() function to get the current date and time.
-      - Do not add any other checks or logic to this. Only the time or interval check.
-      - Log whether or not the baselineFunction() will be triggered or not.
-      - Ensure that the baselineFunction() is always executed once at the start of the run, irrespective of the interval or time check.
-     
-     BASELINE FUNCTION:
-     {BASELINE_JS}
-
-     Output Format:
-     > - Output Structured JSON with only the following keys:
-     > - code (the code for baseline function)
-     > - interval (code to call/execute the baseline function at the time or interval specified by the user)
-     
-     Notes:
-          > - The user will not be involved in the execution. Thus, you must write impeccable code.
-          > - The user's balance will be provided in the balances variable in the format: 
-            {{
-              'coin': '4.998509',
-              'kaddex.kdx': '1500',
-              'n_b742b4e9c600892af545afb408326e82a6c0c6ed.zUSD': '0.5',
-              'n_582fed11af00dc626812cd7890bb88e72067f28c.bro': '0.0015',
-              'runonflux.flux': '1.70313993'
-            }}
-          > - Avoid over-engineering: keep the code simple yet effective.
-          > - Ensure that there are no errors in the code.
-     
-    """),
+    ("system", CODER_PROMPT),
     ("human", "{input}")
   ])
 
@@ -132,15 +149,20 @@ def code(prompt: str) -> Dict[str, Any]:
         response = response.replace('```json', '').replace('```', '').strip()
     elif response.startswith('```'):
         response = response.replace('```', '').strip()
-    
+
     try:
         result = json.loads(response)
-        return {
-            "code": result['code'],
-            "interval": result['interval']
-        } 
     except json.JSONDecodeError:
-        return {
-            "error": "Failed to parse response as JSON",
-            "raw_response": response
-        }
+        return {"error": "Generated output not valid JSON", "raw": response}
+
+    code_str = result.get("code", "")
+    interval_str = result.get("interval", "")
+
+    # 1. Syntax check
+    syntax_err = _syntax_check(code_str) or _syntax_check(interval_str)
+    # 2. Shallow lint
+    lint_err = _lint_check(code_str) or _lint_check(interval_str)
+    # 3. Always run guardrail
+    final = _invoke_guardrail(result, syntax_err, lint_err)
+    print("🎉 Guardrail complete; returning final code.")
+    return final

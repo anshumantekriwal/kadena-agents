@@ -2,7 +2,6 @@ import os
 import json
 from typing import Dict, Any
 from langchain_openai import ChatOpenAI
-from langchain_deepseek import ChatDeepSeek
 from langchain.prompts import ChatPromptTemplate
 import re
 import json

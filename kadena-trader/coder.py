@@ -90,6 +90,7 @@ def code(prompt: str) -> Dict[str, Any]:
       - Use the Date() function to get the current date and time.
       - Do not add any other checks or logic to this. Only the time or interval check.
       - Log whether or not the baselineFunction() will be triggered or not.
+      - Ensure that the baselineFunction() is always executed once at the start of the run, irrespective of the interval or time check.
      
      BASELINE FUNCTION:
      {BASELINE_JS}
@@ -110,6 +111,7 @@ def code(prompt: str) -> Dict[str, Any]:
               'runonflux.flux': '1.70313993'
             }}
           > - Avoid over-engineering: keep the code simple yet effective.
+          > - Ensure that there are no errors in the code.
      
     """),
     ("human", "{input}")

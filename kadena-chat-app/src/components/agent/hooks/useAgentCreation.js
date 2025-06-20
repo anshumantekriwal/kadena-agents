@@ -145,10 +145,10 @@ export const useAgentCreation = () => {
       const { mnemonic, publicKey, privateKey: pkFromWallet } = walletData;
 
       if (!mnemonic || !publicKey || !pkFromWallet) {
-        console.error("Invalid wallet data received:", walletData);
+        console.error("Invalid wallet data received: Missing required fields");
         throw new Error("Invalid wallet data received from API");
       }
-      console.log("Wallet generated:", { publicKey, mnemonic });
+      console.log("Wallet generated successfully for public key:", publicKey);
 
       const address = "k:" + publicKey;
 

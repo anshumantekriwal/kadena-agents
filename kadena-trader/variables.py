@@ -633,7 +633,7 @@ PREDEFINED_PARAMETERS = """
 // API configuration
 const API_BASE_URL = "https://kadena-agents.onrender.com";
 let API_KEY = process.env.API_KEY;
-const DATE = new Date();
+const DATE = new Date().toISOString();
 
 export const chainId = "2";
 export const networkId = "mainnet01";
@@ -731,7 +731,7 @@ CODER_PROMPT = """
      4. Predefined Parameters:
         {PREDEFINED_PARAMETERS}
         This documentation contains information about some variables that are predefined within the execution environment.
-    
+    io
     Here are some rules to follow:
       1. Do not access any external JavaScript libraries/packages. This may cause the script to fail.
       2. Use the DATE variable to get the current date and time, nothing else.

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import WalletInfo from './WalletInfo';
-import './Navbar.css';
+import React, { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import WalletInfo from "./WalletInfo";
+import "./Navbar.css";
 
 const Navbar: React.FC = () => {
   const { isLoggedIn, logout, user } = useAuth();
@@ -12,60 +12,99 @@ const Navbar: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   if (!isLoggedIn) return null;
 
-  // Determine which main action button to show
-  let mainActionLabel = '';
-  let mainActionHandler = () => {};
-  if (location.pathname === '/agent') {
-    mainActionLabel = 'Chat';
-    mainActionHandler = () => navigate('/');
-  } else if (location.pathname === '/terminal') {
-    mainActionLabel = 'Chat';
-    mainActionHandler = () => navigate('/');
-  } else if (location.pathname === '/') {
-    mainActionLabel = 'Launch Agent';
-    mainActionHandler = () => navigate('/agent');
-  } else {
-    mainActionLabel = 'Chat';
-    mainActionHandler = () => navigate('/');
-  }
+  const navigationItems = [
+    { label: "Dashboard", path: "/", icon: "" },
+    { label: "Chat", path: "/chat", icon: "" },
+    { label: "Agents", path: "/agent", icon: "" },
+    { label: "Terminal", path: "/terminal", icon: "" },
+  ];
 
   return (
-    <nav className="navbar sticky-navbar">
-      <div className="navbar-userinfo" onClick={() => setShowWallet(true)}>
-        <div className="user-avatar">
-          {user?.email?.charAt(0).toUpperCase() || 'U'}
+    <>
+      <div className="navbar-floating-container">
+        {/* Left - Account Info */}
+        <div
+          className="navbar-account-floating"
+          onClick={() => setShowWallet(true)}
+        >
+          <div className="user-avatar">
+            {user?.email?.charAt(0).toUpperCase() || "U"}
+          </div>
+          <div className="user-info">
+            <div className="user-name">
+              {user?.email?.split("@")[0] || "User"}
+            </div>
+            <div className="user-wallet">
+              {user?.accountName?.slice(0, 6)}...
+              {user?.accountName?.slice(-4) || ""}
+            </div>
+          </div>
         </div>
-        <div className="user-email-wallet">
-          <div className="user-email">{user?.email || 'User'}</div>
-          <div className="user-wallet-short">{user?.accountName || 'No wallet'}</div>
+
+        {/* Center - Navigation Pills */}
+        <div className="navbar-center-pill">
+          <div className="nav-tabs-pill">
+            {navigationItems.map((item) => (
+              <button
+                key={item.path}
+                className={`nav-tab-pill ${
+                  location.pathname === item.path ? "active" : ""
+                }`}
+                onClick={() => navigate(item.path)}
+              >
+                <span className="nav-tab-icon">{item.icon}</span>
+                <span className="nav-tab-label">{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Right - Actions */}
+        <div className="navbar-actions-floating">
+          <button
+            className="navbar-action-btn wallet-btn"
+            onClick={() => setShowWallet(true)}
+          >
+            💼
+          </button>
+          <button
+            className="navbar-action-btn logout-btn"
+            onClick={handleLogout}
+          >
+            🚪
+          </button>
         </div>
       </div>
-      <div className="navbar-actions">
-        <button className="agent-launcher-button agent-launcher-button-white" onClick={mainActionHandler}>
-          {mainActionLabel}
-        </button>
-        <button className="agent-launcher-button agent-launcher-button-outline" onClick={() => navigate('/terminal')}>
-          Terminal
-        </button>
-      </div>
+
+      {/* Wallet Modal */}
       {showWallet && (
         <div className="wallet-overlay">
-          <div className="wallet-overlay-backdrop" onClick={() => setShowWallet(false)} />
-          <div className="wallet-overlay-content">
+          <div
+            className="wallet-overlay-backdrop"
+            onClick={() => setShowWallet(false)}
+          />
+          <div
+            className={`wallet-overlay-content ${
+              showWallet ? "wallet-overlay-content-visible" : ""
+            }`}
+          >
             <WalletInfo />
-            <button className="wallet-overlay-close" onClick={() => setShowWallet(false)}>
+            <button
+              className="wallet-overlay-close"
+              onClick={() => setShowWallet(false)}
+            >
               Close
             </button>
           </div>
         </div>
       )}
-    </nav>
+    </>
   );
 };
 
-export default Navbar; 
+export default Navbar;

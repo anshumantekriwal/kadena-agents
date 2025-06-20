@@ -8,7 +8,9 @@ import {
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Login from "./components/Login";
 import Chat from "./components/Chat";
+import Dashboard from "./components/Dashboard";
 import "./App.css";
+import "./styles/fonts.css";
 import { WalletProvider } from "./context/WalletContext";
 import Navbar from "./components/Navbar";
 import AgentLauncher from "./components/agent/AgentLauncher";
@@ -63,6 +65,14 @@ const AppRoutes: React.FC = () => {
         />
         <Route
           path="/"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chat"
           element={
             <ProtectedRoute>
               <Chat />

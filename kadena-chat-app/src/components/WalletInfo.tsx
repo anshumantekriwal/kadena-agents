@@ -97,6 +97,35 @@ const WalletInfo: React.FC = () => {
     return token?.name || symbol;
   };
 
+  const getTokenIcon = (symbol: string): string => {
+    // Map token symbols to appropriate icons
+    const iconMap: { [key: string]: string } = {
+      KDA: "💎",
+      USDC: "💵",
+      USDT: "💰",
+      ETH: "🔷",
+      BTC: "₿",
+      WETH: "🔸",
+      DAI: "🏛️",
+      KDX: "🔥",
+      FLUX: "⚡",
+      KSWAP: "🔄",
+      BABENA: "🍌",
+      KDLAUNCH: "🚀",
+    };
+    return iconMap[symbol] || "🪙";
+  };
+
+  const formatBalance = (balance: string): string => {
+    const num = parseFloat(balance);
+    if (num === 0) return "0";
+    if (num < 0.000001) return "<0.000001";
+    if (num < 0.01) return num.toFixed(6);
+    if (num < 1) return num.toFixed(4);
+    if (num < 1000) return num.toFixed(2);
+    return num.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  };
+
   const handleViewDashboard = (agentId: string) => {
     navigate(`/agent/${agentId}`);
   };
@@ -109,148 +138,174 @@ const WalletInfo: React.FC = () => {
   }
 
   return (
-    <div className="wallet-info">
-      <div className="chain-warning">
-        ⚠️ AgentK is on Kadena Chain 2 - Make sure to only deposit on mainnet
-        chain 2
-      </div>
-      <h3>
-        <span>Kadena Wallet</span>
-        {isLoading && <span className="loading-indicator">Refreshing...</span>}
-      </h3>
-
-      <div className="wallet-details">
-        <div className="account-section">
-          <div className="wallet-item">
-            <span className="label">Account</span>
-            <div className="value account-value">
-              <span>{accountName}</span>
-            </div>
-          </div>
-          <div className="wallet-item">
-            <span className="label">Public Key</span>
-            <div className="value key-value">
-              <span>{publicKey}</span>
-            </div>
+    <div className="wallet-page-container">
+      <div className="wallet-page-content">
+        {/* Header */}
+        <div className="wallet-page-header">
+          <h1 className="wallet-page-title">Wallet Dashboard</h1>
+          <div className="wallet-chain-warning">
+            ⚠️ AgentK is on Kadena Chain 2 - Make sure to only deposit on
+            mainnet chain 2
           </div>
         </div>
 
-        <div className="wallet-item">
-          <span className="label">
-            Token Balances
-            <button
-              onClick={refreshBalances}
-              className="refresh-button"
-              disabled={isLoading}
-            >
-              🔄 Refresh
-            </button>
-          </span>
-          {isLoading ? (
-            <div className="loading-indicator">Loading balances...</div>
-          ) : error ? (
-            <div className="value error">{error}</div>
-          ) : balances.length === 0 ? (
-            <div className="value">No tokens found</div>
-          ) : (
-            <div className="balances-list">
-              {balances.map((balance) => (
-                <div key={balance.symbol} className="balance-item">
-                  <div className="token-avatar">
-                    {balance.symbol.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="balance-value">
-                    <span>{balance.balance}</span>
-                    <span className="token-symbol">
-                      {balance.symbol} • {getTokenName(balance.symbol)}
-                    </span>
-                  </div>
+        {/* Main Grid */}
+        <div className="wallet-page-grid">
+          {/* Account Information */}
+          <div className="wallet-info-section wallet-centered-section">
+            <h2 className="wallet-section-title">Account Information</h2>
+            <div className="wallet-account-details">
+              <div className="wallet-data-field">
+                <div className="wallet-field-label">Account Name</div>
+                <div className="wallet-field-value">
+                  <span className="wallet-field-text">{accountName}</span>
+                  <button
+                    className="wallet-copy-button"
+                    onClick={() => copyToClipboard(accountName, "account")}
+                  >
+                    {copiedText === "account" ? "✓" : "📋"}
+                  </button>
                 </div>
-              ))}
+              </div>
+              <div className="wallet-data-field">
+                <div className="wallet-field-label">Public Key</div>
+                <div className="wallet-field-value">
+                  <span className="wallet-field-text">{publicKey}</span>
+                  <button
+                    className="wallet-copy-button"
+                    onClick={() => copyToClipboard(publicKey, "publickey")}
+                  >
+                    {copiedText === "publickey" ? "✓" : "📋"}
+                  </button>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
 
-        <div className="wallet-item">
-          <span className="label">Your Agents</span>
-          {loadingAgents ? (
-            <div className="loading-indicator">Loading agents...</div>
-          ) : userAgents.length === 0 ? (
-            <div className="value">No agents created yet</div>
-          ) : (
-            <div className="agents-list">
-              {userAgents.map((agent) => (
-                <div key={agent.id} className="agent-item">
-                  <div className="agent-avatar">
-                    {agent.image ? (
-                      <img src={agent.image} alt={agent.name} />
-                    ) : (
-                      agent.name.charAt(0).toUpperCase()
-                    )}
-                  </div>
-                  <div className="agent-details">
-                    <div className="agent-name">{agent.name}</div>
-                    <div className="agent-description">{agent.description}</div>
-                    <div className="agent-status">
-                      <span
-                        className={`status-indicator ${
-                          agent.agent_deployed ? "deployed" : "pending"
-                        }`}
-                      >
-                        {agent.agent_deployed ? "✅ Deployed" : "⏳ Pending"}
-                      </span>
+          {/* Token Balances */}
+          <div className="wallet-info-section wallet-full-width-section">
+            <div className="wallet-section-header">
+              <h2 className="wallet-section-title">Token Balances (Chain 2)</h2>
+              <button
+                onClick={refreshBalances}
+                className="wallet-refresh-button"
+                disabled={isLoading}
+              >
+                {isLoading ? "Refreshing..." : "🔄 Refresh"}
+              </button>
+            </div>
+
+            {isLoading ? (
+              <div className="wallet-loading-state">
+                <div className="wallet-spinner"></div>
+                <span>Loading balances...</span>
+              </div>
+            ) : error ? (
+              <div className="wallet-error-state">Error: {error}</div>
+            ) : balances.length === 0 ? (
+              <div className="wallet-empty-state">No tokens found</div>
+            ) : (
+              <div className="wallet-balance-grid">
+                {balances.map((balance) => (
+                  <div key={balance.symbol} className="wallet-balance-card">
+                    <div className="wallet-balance-symbol">
+                      {getTokenIcon(balance.symbol)} {balance.symbol}
                     </div>
+                    <div className="wallet-balance-amount">
+                      {formatBalance(balance.balance.toString())}
+                    </div>
+                    <div className="wallet-balance-name">
+                      {getTokenName(balance.symbol)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Your Agents */}
+          <div className="wallet-info-section wallet-full-width-section">
+            <h2 className="wallet-section-title">Your Agents</h2>
+            {loadingAgents ? (
+              <div className="wallet-loading-state">
+                <div className="wallet-spinner"></div>
+                <span>Loading agents...</span>
+              </div>
+            ) : userAgents.length === 0 ? (
+              <div className="wallet-empty-state">No agents created yet</div>
+            ) : (
+              <div className="wallet-agents-list">
+                {userAgents.map((agent) => (
+                  <div key={agent.id} className="wallet-agent-card">
+                    <div className="wallet-agent-header">
+                      <div className="wallet-agent-avatar">
+                        {agent.image ? (
+                          <img src={agent.image} alt={agent.name} />
+                        ) : (
+                          agent.name.charAt(0).toUpperCase()
+                        )}
+                      </div>
+                      <div className="wallet-agent-info">
+                        <h3 className="wallet-agent-name">{agent.name}</h3>
+                        <p className="wallet-agent-description">
+                          {agent.description}
+                        </p>
+                        <div className="wallet-agent-status">
+                          <span
+                            className={`wallet-status-indicator ${
+                              agent.agent_deployed ? "deployed" : "pending"
+                            }`}
+                          >
+                            {agent.agent_deployed
+                              ? "✅ Deployed"
+                              : "⏳ Pending"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
                     {agent.agent_wallet && (
-                      <div className="agent-wallet">
-                        <span className="wallet-label">Agent Wallet:</span>
-                        <span className="wallet-address">
-                          {agent.agent_wallet}
-                        </span>
-                        <button
-                          onClick={() =>
-                            copyToClipboard(agent.agent_wallet, "agent-wallet")
-                          }
-                          className="copy-button"
-                          title="Copy wallet address"
-                        >
-                          {copiedText === "agent-wallet" ? "✓" : "📋"}
-                        </button>
+                      <div className="wallet-agent-field">
+                        <div className="wallet-field-label">Agent Wallet</div>
+                        <div className="wallet-field-value">
+                          <span className="wallet-field-text">
+                            {agent.agent_wallet.slice(0, 30)}...
+                          </span>
+                          <button
+                            onClick={() =>
+                              copyToClipboard(
+                                agent.agent_wallet,
+                                "agent-wallet"
+                              )
+                            }
+                            className="wallet-copy-button"
+                          >
+                            {copiedText === "agent-wallet" ? "✓" : "📋"}
+                          </button>
+                        </div>
                       </div>
                     )}
-                    {agent.agent_privatekey && (
-                      <div className="agent-private-key">
-                        <span className="wallet-label">Private Key:</span>
-                        <span className="wallet-address">••••••••••••••••</span>
-                        <button
-                          onClick={() =>
-                            copyToClipboard(
-                              agent.agent_privatekey,
-                              "agent-private-key"
-                            )
-                          }
-                          className="copy-button"
-                          title="Copy private key"
-                        >
-                          {copiedText === "agent-private-key" ? "✓" : "🔑"}
-                        </button>
-                      </div>
-                    )}
+
                     {agentBalances[agent.id] &&
                       agentBalances[agent.id].length > 0 && (
-                        <div className="agent-balances">
-                          <span className="wallet-label">Agent Balances:</span>
-                          <div className="agent-balances-list">
+                        <div className="wallet-agent-balances">
+                          <div className="wallet-field-label">
+                            Agent Balances
+                          </div>
+                          <div className="wallet-agent-balance-list">
                             {agentBalances[agent.id].map((balance) => (
                               <div
                                 key={balance.symbol}
-                                className="agent-balance-item"
+                                className="wallet-agent-balance-item"
                               >
-                                <div className="token-avatar small">
-                                  {balance.symbol.charAt(0).toUpperCase()}
+                                <div className="wallet-token-icon">
+                                  {getTokenIcon(balance.symbol)}
                                 </div>
-                                <div className="balance-value">
-                                  <span>{balance.balance}</span>
-                                  <span className="token-symbol">
+                                <div className="wallet-balance-info">
+                                  <span className="wallet-balance-amount">
+                                    {formatBalance(balance.balance)}
+                                  </span>
+                                  <span className="wallet-token-name">
                                     {balance.symbol} •{" "}
                                     {getTokenName(balance.symbol)}
                                   </span>
@@ -260,27 +315,27 @@ const WalletInfo: React.FC = () => {
                           </div>
                         </div>
                       )}
+
                     <button
                       onClick={() => handleViewDashboard(agent.id)}
-                      className="view-dashboard-button"
-                      title="View Agent Dashboard"
+                      className="wallet-dashboard-button"
                     >
                       📊 View Dashboard
                     </button>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Logout Button */}
+          <div className="wallet-info-section wallet-full-width-section">
+            <button className="wallet-logout-button" onClick={logout}>
+              Logout
+            </button>
+          </div>
         </div>
       </div>
-      <button
-        className="logout-button"
-        onClick={logout}
-        style={{ marginTop: "1rem", width: "100%" }}
-      >
-        Logout
-      </button>
     </div>
   );
 };

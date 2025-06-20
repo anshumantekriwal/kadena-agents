@@ -1,83 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
-import styled from "styled-components";
 import Navbar from "../Navbar";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../context/AuthContext";
-
-const Container = styled.div`
-  height: 100%;
-  background-color: #000;
-  color: #fff;
-  font-family: monospace;
-  padding: 20px;
-  overflow-y: auto;
-`;
-
-const Line = styled.div`
-  margin-bottom: 16px;
-  white-space: pre-wrap;
-`;
-
-const Command = styled(Line)`
-  color: #64ff64;
-  &::before {
-    content: "> ";
-  }
-`;
-
-const Output = styled(Line)`
-  color: #fff;
-`;
-
-const Timestamp = styled.span`
-  color: #666;
-  margin-left: 10px;
-  font-size: 12px;
-`;
-
-const NoLogsMessage = styled.div`
-  text-align: center;
-  color: #666;
-  font-size: 16px;
-  margin-top: 50px;
-`;
-
-const RefreshButton = styled.button`
-  position: fixed;
-  top: 100px;
-  right: 20px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-  z-index: 1000;
-
-  &:hover {
-    background-color: #45a049;
-  }
-
-  &:disabled {
-    background-color: #666;
-    cursor: not-allowed;
-  }
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #333;
-`;
-
-const Title = styled.h2`
-  color: #4caf50;
-  margin: 0;
-`;
+import "./Terminal.css";
 
 function Terminal() {
   const [history, setHistory] = useState([]);
@@ -166,47 +91,101 @@ function Terminal() {
 
   return (
     <>
-      <Navbar />
-      <Container ref={terminalRef}>
-        <Header>
-          <Title>Agent Activity Logs</Title>
-        </Header>
+      <div className="terminal-container">
+        <Navbar />
 
-        {loading ? (
-          <div
-            style={{ textAlign: "center", color: "#666", marginTop: "50px" }}
-          >
-            Loading your agent logs...
+        <div className="terminal-content" ref={terminalRef}>
+          <div className="terminal-header">
+            <h1 className="terminal-title">Agent Activity Logs</h1>
           </div>
-        ) : history.length === 0 ? (
-          <NoLogsMessage>
-            No logs found for your deployed agents.
-            <br />
-            Deploy an agent to see their activity logs here.
-          </NoLogsMessage>
-        ) : (
-          history.map((entry, index) => (
-            <div key={index}>
-              {entry.type === "input" ? (
-                <Command>{entry.content}</Command>
-              ) : (
-                <Output>
-                  <span style={{ color: "#64ff64" }}>
-                    {entry.type === "input" ? "> " : `${entry.agentName}: `}
-                  </span>
-                  {entry.content}
-                  {entry.timestamp && (
-                    <Timestamp>{entry.timestamp.toLocaleString()}</Timestamp>
-                  )}
-                </Output>
-              )}
+
+          <div className="terminal-logs-section">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "1.5rem",
+              }}
+            >
+              <h2
+                className="agent-section-title"
+                style={{
+                  margin: 0,
+                  color: "#4caf50",
+                  fontSize: "1.3rem",
+                  fontWeight: 700,
+                  textShadow: "0 2px 4px rgba(76, 175, 80, 0.3)",
+                  letterSpacing: "0.2px",
+                }}
+              >
+                Live Agent Logs
+              </h2>
+              <button
+                className="terminal-refresh-button"
+                onClick={fetchUserAgentLogs}
+                disabled={loading}
+                style={{ position: "relative", top: "auto", right: "auto" }}
+              >
+                {loading ? "Refreshing..." : "🔄 Refresh"}
+              </button>
             </div>
-          ))
-        )}
-      </Container>
-      <RefreshButton onClick={fetchUserAgentLogs} disabled={loading}>
-        {loading ? "Refreshing..." : "🔄 Refresh Logs"}
-      </RefreshButton>
+
+            {loading ? (
+              <div className="terminal-loading">
+                <div
+                  className="agent-spinner"
+                  style={{
+                    width: "20px",
+                    height: "20px",
+                    border: "2px solid rgba(76, 175, 80, 0.3)",
+                    borderTop: "2px solid #4caf50",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                    marginRight: "0.5rem",
+                    display: "inline-block",
+                  }}
+                ></div>
+                Loading your agent logs...
+              </div>
+            ) : history.length === 0 ? (
+              <div className="terminal-no-logs">
+                No logs found for your deployed agents.
+                <br />
+                Deploy an agent to see their activity logs here.
+              </div>
+            ) : (
+              <div className="terminal-logs-container">
+                {history.map((entry, index) => (
+                  <div
+                    key={entry.eventId || index}
+                    className="terminal-log-entry"
+                  >
+                    <div className="terminal-log-header">
+                      <div className="terminal-log-info">
+                        <span className="terminal-log-agent">
+                          {entry.agentName}
+                        </span>
+                        {entry.logStreamName && (
+                          <span className="terminal-log-stream">
+                            {entry.logStreamName}
+                          </span>
+                        )}
+                      </div>
+                      {entry.timestamp && (
+                        <span className="terminal-timestamp">
+                          {entry.timestamp.toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                    <div className="terminal-log-message">{entry.content}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </>
   );
 }

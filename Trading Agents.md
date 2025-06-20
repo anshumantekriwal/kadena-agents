@@ -1,6 +1,4 @@
-# Autonomous Trading Agents for Kadena: A Technical Whitepaper
-
-## Bridging Natural Language and Blockchain Automation
+# Agent K Autonomous Trading Agents
 
 **By XADE**
 

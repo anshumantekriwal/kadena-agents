@@ -45,15 +45,15 @@ interface TransactionResponseData {
 }
 
 const SendButton = () => (
-  <span
-    style={{
-      fontSize: "14px",
-      fontWeight: 500,
-      color: "#000000",
-    }}
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
   >
-    Send
-  </span>
+    <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="currentColor" />
+  </svg>
 );
 
 const LoadingDots = () => (
@@ -78,137 +78,218 @@ const Chat: React.FC = () => {
     useState<SignAndSubmitResult | null>(null);
   const [isSubmittingTx, setIsSubmittingTx] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Scroll to bottom whenever messages change
-    if (messagesEndRef.current) {
+    // Only scroll to bottom when there are messages and not on initial load
+    if (messagesEndRef.current && messages.length > 0) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
 
+  useEffect(() => {
+    // Focus input on component mount
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
+
   // Format transaction response for display
   const formatTransactionResponse = (response: any): string => {
-    // Handle quote-only response
-    if ("amountOut" in response && "priceImpact" in response) {
-      const quoteResponse = response as QuoteResponse;
-      return (
-        `### Quote Details\n` +
-        `- **${quoteResponse.text}:** ${quoteResponse.amountOut}\n` +
-        `- **Price Impact:** ${quoteResponse.priceImpact}%\n`
-      );
+    try {
+      // Handle null or undefined response
+      if (!response) {
+        return "I received an empty response. Please try again.";
+      }
+
+      // Handle quote-only response
+      if ("amountOut" in response && "priceImpact" in response) {
+        const quoteResponse = response as QuoteResponse;
+        return (
+          `### Quote Details\n` +
+          `- **${quoteResponse.text || "Amount"}:** ${
+            quoteResponse.amountOut
+          }\n` +
+          `- **Price Impact:** ${quoteResponse.priceImpact}%\n`
+        );
+      }
+
+      // Handle transaction response
+      if (response.transaction) {
+        const txResponse = response as TransactionResponse;
+        let formattedResponse = `## Transaction Generated\n`;
+
+        // Handle swap quote details
+        if (txResponse.quote) {
+          formattedResponse +=
+            `### Exchange Details\n` +
+            `- **Input Amount:** ${txResponse.quote.expectedIn}\n` +
+            `- **Output Amount:** ${txResponse.quote.expectedOut}\n` +
+            `- **Price Impact:** ${txResponse.quote.priceImpact}%\n` +
+            `- **Slippage Tolerance:** ${txResponse.quote.slippage}%\n\n`;
+        }
+
+        // Handle transfer metadata
+        if (txResponse.metadata && "sender" in txResponse.metadata) {
+          const metadata = txResponse.metadata as TransactionMetadata;
+          formattedResponse +=
+            `### Transfer Details\n` +
+            `- **From:** ${metadata.sender}\n` +
+            `- **To:** ${metadata.receiver}\n` +
+            `- **Amount:** ${metadata.formattedAmount}\n` +
+            `- **Token:** ${metadata.tokenAddress}\n` +
+            `- **Estimated Gas:** ${metadata.estimatedGas} KDA\n\n`;
+        }
+
+        // Handle NFT metadata
+        if (txResponse.metadata && "uri" in txResponse.metadata) {
+          const metadata = txResponse.metadata as NFTMetadata;
+          formattedResponse +=
+            `### NFT Details\n` +
+            `- **Name:** ${metadata.name}\n` +
+            `- **Description:** ${metadata.description}\n` +
+            `- **Collection:** ${metadata.collection}\n` +
+            `- **Royalties:** ${metadata.royalties}\n` +
+            `- **URI:** ${metadata.uri}\n\n`;
+        }
+
+        // Handle collection ID
+        if (txResponse.collectionId) {
+          formattedResponse +=
+            `### Collection Details\n` +
+            `- **Collection ID:** ${txResponse.collectionId}\n\n`;
+        }
+
+        // Handle token ID
+        if (txResponse.tokenId) {
+          formattedResponse +=
+            `### Token Details\n` + `- **Token ID:** ${txResponse.tokenId}\n\n`;
+        }
+
+        // Add transaction details with error handling
+        try {
+          const cmdData =
+            typeof txResponse.transaction.cmd === "string"
+              ? JSON.parse(txResponse.transaction.cmd)
+              : txResponse.transaction.cmd;
+
+          formattedResponse +=
+            `### Transaction Details\n` +
+            `- **Hash:** \`${txResponse.transaction.hash}\`\n` +
+            `- **Chain ID:** ${cmdData?.meta?.chainId || "Unknown"}\n` +
+            `- **Network:** ${cmdData?.networkId || "Unknown"}\n\n` +
+            `**Do you want to sign and submit this transaction?**`;
+        } catch (parseError) {
+          console.warn("Error parsing transaction command:", parseError);
+          formattedResponse +=
+            `### Transaction Details\n` +
+            `- **Hash:** \`${txResponse.transaction.hash}\`\n` +
+            `- **Chain ID:** Unknown\n` +
+            `- **Network:** Unknown\n\n` +
+            `**Do you want to sign and submit this transaction?**`;
+        }
+
+        return formattedResponse;
+      }
+
+      // Handle balance responses (arrays of token balances)
+      if (Array.isArray(response)) {
+        let balanceResponse = `### Your Wallet Balances\n\n`;
+        response.forEach((balance: any) => {
+          if (balance.token && balance.amount !== undefined) {
+            balanceResponse += `- **${balance.token}:** ${balance.amount}\n`;
+          }
+        });
+        return balanceResponse || "No balances found.";
+      }
+
+      // Handle simple text responses that might be objects
+      if (response.text && typeof response.text === "string") {
+        return response.text;
+      }
+
+      // Handle error responses
+      if (response.error) {
+        return `**Error:** ${
+          typeof response.error === "string"
+            ? response.error
+            : JSON.stringify(response.error)
+        }`;
+      }
+
+      // Default JSON formatting for other response types
+      return `\`\`\`json\n${JSON.stringify(response, null, 2)}\n\`\`\``;
+    } catch (error) {
+      console.error("Error formatting transaction response:", error);
+      return `I encountered an error while formatting the response. Please try again.`;
     }
-
-    // Handle transaction response
-    if (response.transaction) {
-      const txResponse = response as TransactionResponse;
-      let formattedResponse = `## Transaction Generated\n`;
-
-      // Handle swap quote details
-      if (txResponse.quote) {
-        formattedResponse +=
-          `### Exchange Details\n` +
-          `- **Input Amount:** ${txResponse.quote.expectedIn}\n` +
-          `- **Output Amount:** ${txResponse.quote.expectedOut}\n` +
-          `- **Price Impact:** ${txResponse.quote.priceImpact}%\n` +
-          `- **Slippage Tolerance:** ${txResponse.quote.slippage}%\n\n`;
-      }
-
-      // Handle transfer metadata
-      if (txResponse.metadata && "sender" in txResponse.metadata) {
-        const metadata = txResponse.metadata as TransactionMetadata;
-        formattedResponse +=
-          `### Transfer Details\n` +
-          `- **From:** ${metadata.sender}\n` +
-          `- **To:** ${metadata.receiver}\n` +
-          `- **Amount:** ${metadata.formattedAmount}\n` +
-          `- **Token:** ${metadata.tokenAddress}\n` +
-          `- **Estimated Gas:** ${metadata.estimatedGas} KDA\n\n`;
-      }
-
-      // Handle NFT metadata
-      if (txResponse.metadata && "uri" in txResponse.metadata) {
-        const metadata = txResponse.metadata as NFTMetadata;
-        formattedResponse +=
-          `### NFT Details\n` +
-          `- **Name:** ${metadata.name}\n` +
-          `- **Description:** ${metadata.description}\n` +
-          `- **Collection:** ${metadata.collection}\n` +
-          `- **Royalties:** ${metadata.royalties}\n` +
-          `- **URI:** ${metadata.uri}\n\n`;
-      }
-
-      // Handle collection ID
-      if (txResponse.collectionId) {
-        formattedResponse +=
-          `### Collection Details\n` +
-          `- **Collection ID:** ${txResponse.collectionId}\n\n`;
-      }
-
-      // Handle token ID
-      if (txResponse.tokenId) {
-        formattedResponse +=
-          `### Token Details\n` + `- **Token ID:** ${txResponse.tokenId}\n\n`;
-      }
-
-      // Add transaction details
-      formattedResponse +=
-        `### Transaction Details\n` +
-        `- **Hash:** \`${txResponse.transaction.hash}\`\n` +
-        `- **Chain ID:** ${
-          JSON.parse(txResponse.transaction.cmd).meta?.chainId || "Unknown"
-        }\n` +
-        `- **Network:** ${
-          JSON.parse(txResponse.transaction.cmd).networkId || "Unknown"
-        }\n\n` +
-        `**Do you want to sign and submit this transaction?**`;
-
-      return formattedResponse;
-    }
-
-    // Default JSON formatting for other response types
-    return `\`\`\`json\n${JSON.stringify(response, null, 2)}\n\`\`\``;
   };
 
   // Function to convert markdown text to HTML (basic implementation)
   const renderMarkdown = (content: string): string => {
-    // Convert headers: # Header -> <h1>Header</h1>
-    let html = content
-      .replace(/^### (.*$)/gm, "<h3>$1</h3>")
-      .replace(/^## (.*$)/gm, "<h2>$1</h2>")
-      .replace(/^# (.*$)/gm, "<h1>$1</h1>");
+    try {
+      if (!content || typeof content !== "string") {
+        return "";
+      }
 
-    // Convert bold: **text** -> <strong>text</strong>
-    html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+      // Convert headers: # Header -> <h1>Header</h1>
+      let html = content
+        .replace(/^### (.*$)/gm, "<h3>$1</h3>")
+        .replace(/^## (.*$)/gm, "<h2>$1</h2>")
+        .replace(/^# (.*$)/gm, "<h1>$1</h1>");
 
-    // Convert italic: *text* -> <em>text</em>
-    html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
+      // Convert bold: **text** -> <strong>text</strong>
+      html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
 
-    // Convert lists: - item -> <li>item</li>
-    html = html
-      .replace(/^\s*- (.*$)/gm, "<li>$1</li>")
-      .replace(/<li>(.*)<\/li>/g, "<ul><li>$1</li></ul>");
+      // Convert italic: *text* -> <em>text</em>
+      html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
 
-    // Convert links: [text](url) -> <a href="url">text</a>
-    html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
+      // Convert code blocks first (before inline code)
+      html = html.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>");
 
-    // Convert code blocks
-    html = html.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>");
+      // Convert inline code: `code` -> <code>code</code>
+      html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
 
-    // Convert inline code: `code` -> <code>code</code>
-    html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+      // Convert lists: - item -> <li>item</li>
+      html = html
+        .replace(/^\s*- (.*$)/gm, "<li>$1</li>")
+        .replace(/<li>(.*?)<\/li>/g, "<ul><li>$1</li></ul>");
 
-    // Convert paragraphs: add <p> tags
-    html = html.replace(/^\s*(\S[\s\S]*?)(?=^\s*$|^\s*[#-]|$)/gm, "<p>$1</p>");
+      // Fix nested lists
+      html = html.replace(/<\/ul>\s*<ul>/g, "");
 
-    // Replace newlines with breaks
-    html = html.replace(/\n/g, "<br>");
+      // Convert links: [text](url) -> <a href="url">text</a>
+      html = html.replace(
+        /\[(.*?)\]\((.*?)\)/g,
+        '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+      );
 
-    return html;
+      // Convert line breaks to <br> for single line breaks
+      html = html.replace(/\n(?!\n)/g, "<br>");
+
+      // Convert paragraphs: add <p> tags for double line breaks
+      html = html
+        .replace(/\n\n/g, "</p><p>")
+        .replace(/^(?!<[hup])/gm, "<p>")
+        .replace(/(?<![>])$/gm, "</p>");
+
+      // Clean up empty paragraphs and fix formatting
+      html = html
+        .replace(/<p><\/p>/g, "")
+        .replace(/<p>(<[hul])/g, "$1")
+        .replace(/(<\/[hul][^>]*>)<\/p>/g, "$1")
+        .replace(/^<p>/, "")
+        .replace(/<\/p>$/, "");
+
+      return html;
+    } catch (error) {
+      console.error("Error rendering markdown:", error);
+      return content; // Return original content if markdown parsing fails
+    }
   };
 
-  // Function to render message content based on type
   const renderMessageContent = (message: Message) => {
-    if (message.role === "assistant") {
+    if (message.isMarkdown) {
       return (
         <div
           className="markdown-content"
@@ -216,68 +297,55 @@ const Chat: React.FC = () => {
         />
       );
     }
-    return <div>{message.content}</div>;
+    return <div className="text-content">{message.content}</div>;
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!inputValue.trim() || !user?.accountName) return;
-
-    // Check for private keys ending with '==' to avoid censoring public keys/addresses.
-    const privateKeyRegex = /\b[a-zA-Z0-9\._\-+/]{20,}={1,2}\b/;
-    if (privateKeyRegex.test(inputValue)) {
-      const errorMessage: Message = {
-        role: "assistant",
-        content:
-          "## Security Warning\n\nIt looks like you might have entered a private key. **Never share your private keys with anyone, including this chat.** For your security, this message has not been sent.",
-        isMarkdown: true,
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-      setInputValue("");
-      return;
-    }
-
-    // Create context string
-    const context = {
-      accountName: user.accountName,
-      publicKey: String(user.publicKey),
-      guard: {
-        keys: [String(user.publicKey)],
-        pred: "keys-all",
-      },
-      chainId: "2",
-      balances: balances, // Include balances in the context
-    };
-
-    const contextString = "User Details: " + JSON.stringify(context);
-
-    console.log(contextString);
-
-    // Combine context with user query
-    const enhancedQuery = `${inputValue}\n${contextString}`;
+    if (!inputValue.trim() || isLoading) return;
 
     const userMessage: Message = {
       role: "user",
-      content: inputValue, // Show original message to user
+      content: inputValue.trim(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
     setIsLoading(true);
     setError(null);
-    setPendingTransaction(null);
-    setTransactionResult(null);
 
     try {
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      const userContext: UserContext = {
+        accountName: user.accountName || "",
+        publicKey: user.publicKey || "",
+        chainId: "2",
+      };
+
+      // Create context string
+      const context = {
+        accountName: userContext.accountName,
+        publicKey: userContext.publicKey,
+        guard: {
+          keys: [userContext.publicKey],
+          pred: "keys-all",
+        },
+        chainId: userContext.chainId,
+        balances: balances,
+      };
+
+      const contextString = "User Details: " + JSON.stringify(context);
+      const enhancedQuery = `${userMessage.content}\n${contextString}`;
+
       const response = await chatApi.sendQuery({
         query: enhancedQuery,
         history: [],
       });
 
-      let responseContent: string;
-      let isMarkdown = true; // Default to true for all assistant messages
-
+      let assistantMessage: Message;
       let apiResponse = response.response;
 
       // Handle cases where the response is a JSON string
@@ -289,32 +357,53 @@ const Chat: React.FC = () => {
         }
       }
 
-      if (typeof apiResponse === "string") {
-        responseContent = apiResponse;
-      } else if (apiResponse && "transaction" in apiResponse) {
+      // Check if the response is a transaction that needs user confirmation
+      if (
+        apiResponse &&
+        typeof apiResponse === "object" &&
+        "transaction" in apiResponse
+      ) {
         setPendingTransaction(apiResponse as TransactionResponse);
-        responseContent = formatTransactionResponse(apiResponse);
+        assistantMessage = {
+          role: "assistant",
+          content: formatTransactionResponse(apiResponse),
+          isMarkdown: true,
+        };
       } else if (
         apiResponse &&
-        "response" in apiResponse &&
-        typeof (apiResponse as any).response === "string"
+        typeof apiResponse === "object" &&
+        ("amountOut" in apiResponse || "priceImpact" in apiResponse)
       ) {
-        responseContent = (apiResponse as any).response;
-      } else if (
-        apiResponse &&
-        "answer" in apiResponse &&
-        typeof (apiResponse as any).answer === "string"
-      ) {
-        responseContent = (apiResponse as any).answer;
+        // Handle quote-only responses
+        assistantMessage = {
+          role: "assistant",
+          content: formatTransactionResponse(apiResponse),
+          isMarkdown: true,
+        };
+      } else if (typeof apiResponse === "string") {
+        // Handle string responses
+        assistantMessage = {
+          role: "assistant",
+          content: apiResponse,
+          isMarkdown: false,
+        };
+      } else if (apiResponse && typeof apiResponse === "object") {
+        // Handle other object responses (JSON format)
+        assistantMessage = {
+          role: "assistant",
+          content: formatTransactionResponse(apiResponse),
+          isMarkdown: true,
+        };
       } else {
-        responseContent = formatTransactionResponse(apiResponse);
+        // Fallback for any other response type
+        assistantMessage = {
+          role: "assistant",
+          content: String(
+            apiResponse || "I received an empty response. Please try again."
+          ),
+          isMarkdown: false,
+        };
       }
-
-      const assistantMessage: Message = {
-        role: "assistant",
-        content: responseContent,
-        isMarkdown: isMarkdown,
-      };
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
@@ -322,21 +411,19 @@ const Chat: React.FC = () => {
         error instanceof Error ? error.message : "An unexpected error occurred";
       setError(errorMessage);
 
-      const assistantMessage: Message = {
+      const errorAssistantMessage: Message = {
         role: "assistant",
-        content: `# ❌ Error\n\n${errorMessage}`,
-        isMarkdown: true,
+        content: `I apologize, but I encountered an error: ${errorMessage}. Please try again or rephrase your request.`,
       };
 
-      setMessages((prev) => [...prev, assistantMessage]);
+      setMessages((prev) => [...prev, errorAssistantMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSignAndSubmitTransaction = async () => {
-    if (!pendingTransaction || !user?.accountName) {
-      setError("No transaction to sign or user not logged in");
+    if (!pendingTransaction) {
       return;
     }
 
@@ -410,126 +497,199 @@ const Chat: React.FC = () => {
   };
 
   const handleLaunchAgent = () => {
-    window.location.href = '/agent';
+    window.location.href = "/agent";
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage(e as any);
+    }
   };
 
   return (
     <>
-      <Navbar />
-      <div className="chat-container" style={{ background: '#000', minHeight: '100vh' }}>
-        <div className="main-content">
-          <div className="messages-container">
+      <div className="chat-container">
+        <Navbar />
+
+        <div className="chat-content">
+          <div className="messages-area">
             {messages.length === 0 ? (
-              <div className="empty-state" style={{ color: '#fff', textAlign: 'center', marginTop: '4rem' }}>
-                <h2 style={{ color: '#fff', fontWeight: 700, fontSize: '2rem', marginBottom: '0.5rem' }}>Hello! I'm Agent K</h2>
-                <p style={{ color: '#bbb', fontSize: '1.2rem', marginBottom: '2rem' }}>Your Kadena blockchain assistant.<br/>How can I help you today?</p>
-                <div className="disclaimer" style={{ color: '#888', fontSize: '0.9rem', maxWidth: '600px', margin: '2rem auto 0', padding: '1rem', border: '1px solid #333', borderRadius: '12px', background: '#181818' }}>
-                  <p><strong>Disclaimer:</strong> Agent K is an experimental AI. Always verify transaction details from reliable sources before confirming. Transactions on the blockchain are irreversible.</p>
-                  <p style={{ marginTop: '1rem' }}><strong>Security Warning:</strong> NEVER share your private key or seed phrase. This application will never ask for them.</p>
+              <div className="chat-empty-state">
+                <div className="chat-welcome">
+                  <div className="chat-agent-avatar">
+                    <span>🤖</span>
+                  </div>
+                  <h1 className="chat-welcome-title">Hello! I'm Agent K</h1>
+                  <p className="chat-welcome-subtitle">
+                    Your Kadena blockchain assistant.
+                    <br />
+                    How can I help you today?
+                  </p>
+                  <div className="chat-suggestions">
+                    <button
+                      className="chat-suggestion"
+                      onClick={() =>
+                        setInputValue("Create a new NFT collection")
+                      }
+                    >
+                      🎨 Create NFT Collection
+                    </button>
+                    <button
+                      className="chat-suggestion"
+                      onClick={() => setInputValue("How do I swap tokens?")}
+                    >
+                      🔄 How to swap tokens
+                    </button>
+                    <button
+                      className="chat-suggestion"
+                      onClick={() =>
+                        setInputValue("Mint an NFT in my collection")
+                      }
+                    >
+                      🖼️ Mint NFT
+                    </button>
+                    <button
+                      className="chat-suggestion"
+                      onClick={() =>
+                        setInputValue("Send 1 KDA to another wallet")
+                      }
+                    >
+                      💸 Transfer tokens
+                    </button>
+                  </div>
+                </div>
+                <div className="chat-disclaimer">
+                  <div className="disclaimer-content">
+                    <h4>⚠️ Important Disclaimer</h4>
+                    <p>
+                      Agent K is an experimental AI assistant. Always verify
+                      transaction details from reliable sources before
+                      confirming. Transactions on the blockchain are
+                      irreversible.
+                    </p>
+                    <p>
+                      <strong>Security Warning:</strong> NEVER share your
+                      private key or seed phrase. This application will never
+                      ask for them.
+                    </p>
+                  </div>
                 </div>
               </div>
             ) : (
-              messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`message ${
-                    message.role === "user" ? "user-message" : "assistant-message"
-                  } ${
-                    error && index === messages.length - 1 ? "error-message" : ""
-                  }`}
-                  style={{
-                    background: message.role === 'user' ? '#222' : '#181818',
-                    color: '#fff',
-                    borderRadius: '12px',
-                    padding: '1rem',
-                    margin: '0.5rem 0',
-                    maxWidth: '80%',
-                    alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-                  }}
-                >
-                  <div className="message-content">
-                    {renderMessageContent(message)}
+              <div className="messages-list">
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`chat-message ${
+                      message.role === "user"
+                        ? "chat-message-user"
+                        : "chat-message-assistant"
+                    } ${
+                      error && index === messages.length - 1
+                        ? "chat-message-error"
+                        : ""
+                    }`}
+                  >
+                    <div className="chat-message-avatar">
+                      {message.role === "user" ? (
+                        <div className="user-avatar-chat">
+                          {user?.email?.charAt(0).toUpperCase() || "U"}
+                        </div>
+                      ) : (
+                        <div className="assistant-avatar-chat">🤖</div>
+                      )}
+                    </div>
+                    <div className="chat-message-content">
+                      {renderMessageContent(message)}
+                    </div>
                   </div>
-                </div>
-              ))
-            )}
-            {isLoading && (
-              <div className="message assistant-message">
-                <div className="message-content loading">
-                  <div className="loading-dot"></div>
-                  <div className="loading-dot"></div>
-                  <div className="loading-dot"></div>
-                </div>
+                ))}
+                {isLoading && (
+                  <div className="chat-message chat-message-assistant">
+                    <div className="chat-message-avatar">
+                      <div className="assistant-avatar-chat">🤖</div>
+                    </div>
+                    <div className="chat-message-content">
+                      <div className="chat-loading">
+                        <LoadingDots />
+                        <span>Agent K is thinking...</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             {/* Transaction confirmation buttons */}
             {pendingTransaction && !isSubmittingTx && !transactionResult && (
-              <div className="transaction-actions">
-                <button
-                  className="confirm-button"
-                  onClick={handleConfirmTransaction}
-                  disabled={isSubmittingTx}
-                >
-                  Sign & Submit
-                </button>
-                <button
-                  className="cancel-button"
-                  onClick={handleCancelTransaction}
-                  disabled={isSubmittingTx}
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
-
-            {isSubmittingTx && (
-              <div className="message assistant-message">
-                <div className="message-content loading">
-                  <span style={{ marginRight: "0.5rem" }}>
-                    <b>Signing and submitting transaction</b>
-                  </span>
-                  <div className="loading-dot"></div>
-                  <div className="loading-dot"></div>
-                  <div className="loading-dot"></div>
+              <div className="chat-transaction-actions">
+                <div className="transaction-prompt">
+                  <h4>🔐 Transaction Ready</h4>
+                  <p>
+                    Review the transaction details above and choose an action:
+                  </p>
+                </div>
+                <div className="transaction-buttons">
+                  <button
+                    className="transaction-confirm-button"
+                    onClick={handleConfirmTransaction}
+                    disabled={isSubmittingTx}
+                  >
+                    ✅ Sign & Submit
+                  </button>
+                  <button
+                    className="transaction-cancel-button"
+                    onClick={handleCancelTransaction}
+                    disabled={isSubmittingTx}
+                  >
+                    ❌ Cancel
+                  </button>
                 </div>
               </div>
             )}
 
-            <div ref={messagesEndRef} />
+            {isSubmittingTx && (
+              <div className="chat-message chat-message-assistant">
+                <div className="chat-message-avatar">
+                  <div className="assistant-avatar-chat">🤖</div>
+                </div>
+                <div className="chat-message-content">
+                  <div className="chat-loading">
+                    <LoadingDots />
+                    <span>Signing and submitting transaction...</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Only render scroll anchor when there are messages */}
+            {messages.length > 0 && <div ref={messagesEndRef} />}
           </div>
 
-          {showWallet && (
-            <div className="wallet-overlay">
-              <div className="wallet-overlay-backdrop" onClick={toggleWallet} />
-              <div className="wallet-overlay-content">
-                <WalletInfo />
-                <button className="wallet-overlay-close" onClick={toggleWallet}>
-                  Close
+          <div className="chat-input-area">
+            <form onSubmit={handleSendMessage} className="chat-input-form">
+              <div className="chat-input-container">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask Agent K anything about Kadena..."
+                  disabled={isLoading || isSubmittingTx}
+                  className="chat-input"
+                />
+                <button
+                  type="submit"
+                  className="chat-send-button"
+                  disabled={!inputValue.trim() || isLoading || isSubmittingTx}
+                >
+                  {isLoading ? <LoadingDots /> : <SendButton />}
                 </button>
               </div>
-            </div>
-          )}
-        </div>
-
-        <div className="input-container" style={{ background: '#111' }}>
-          <form onSubmit={handleSendMessage}>
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Type your message here..."
-              disabled={isLoading || isSubmittingTx}
-            />
-            <button
-              type="submit"
-              className="send-button"
-              disabled={!inputValue.trim() || isLoading || isSubmittingTx}
-            >
-              {isLoading ? <LoadingDots /> : <SendButton />}
-            </button>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
     </>

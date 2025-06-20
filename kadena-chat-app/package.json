@@ -9,6 +9,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@kadena/client": "^1.17.1",
+    "@kadena/hd-wallet": "^0.6.1",
     "@kadena/pactjs": "^0.4.3",
     "@magic-ext/kadena": "^1.0.5",
     "@mui/icons-material": "^7.1.0",

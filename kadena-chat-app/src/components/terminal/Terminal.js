@@ -5,89 +5,91 @@ import { useAuth } from "../../context/AuthContext";
 import "./Terminal.css";
 
 function Terminal() {
+  const [agents, setAgents] = useState([]);
+  const [selectedAgentId, setSelectedAgentId] = useState("");
   const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingAgents, setLoadingAgents] = useState(true);
+  const [loadingLogs, setLoadingLogs] = useState(false);
   const terminalRef = useRef(null);
   const { user } = useAuth();
 
+  const fetchAgents = async () => {
+    if (!user?.accountName) return;
+    setLoadingAgents(true);
+    try {
+      const { data, error } = await supabase
+        .from("agents2")
+        .select("id, name, image")
+
+      if (error) throw error;
+
+      setAgents(data || []);
+      if (data && data.length > 0) {
+        setSelectedAgentId(data[0].id);
+      } else {
+        setHistory([]);
+      }
+    } catch (error) {
+      console.error("Error fetching agents:", error);
+    } finally {
+      setLoadingAgents(false);
+    }
+  };
+
+  const fetchLogsForSelectedAgent = async () => {
+    if (!selectedAgentId) return;
+
+    setLoadingLogs(true);
+    try {
+      const agent = agents.find((a) => a.id === selectedAgentId);
+      const { data, error } = await supabase
+        .from("terminal2")
+        .select("message_id, tweet_content, created_at")
+        .eq("agent_id", selectedAgentId)
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+
+      if (data) {
+        const formattedLogs = data.map((log) => ({
+          type: "output",
+          agentId: selectedAgentId,
+          agentName: agent?.name,
+          content: log.tweet_content,
+          timestamp: new Date(log.created_at),
+          eventId: log.id,
+        }));
+        setHistory(formattedLogs);
+      } else {
+        setHistory([]);
+      }
+    } catch (error) {
+      console.error(
+        `Error fetching logs for agent ${selectedAgentId}:`,
+        error
+      );
+      setHistory([]);
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
+
   useEffect(() => {
     if (user?.accountName) {
-      fetchUserAgentLogs();
+      fetchAgents();
     }
   }, [user?.accountName]);
 
-  const fetchUserAgentLogs = async () => {
-    if (!user?.accountName) return;
-
-    setLoading(true);
-    try {
-      // First get all deployed agents for the current user
-      const { data: userAgents, error: agentsError } = await supabase
-        .from("kadena-agents")
-        .select("id, name, agent_deployed")
-        .eq("user_id", user.accountName)
-        .eq("agent_deployed", true);
-
-      if (agentsError) {
-        console.error("Error fetching user agents:", agentsError);
-        return;
-      }
-
-      if (!userAgents || userAgents.length === 0) {
-        setHistory([]);
-        setLoading(false);
-        return;
-      }
-
-      // Fetch logs for each deployed agent
-      const allLogs = [];
-
-      for (const agent of userAgents) {
-        try {
-          const response = await fetch(
-            `https://api.agentk.tech/agent-logs/${agent.id}`,
-            {
-              headers: {
-                "x-api-key": process.env.REACT_APP_COMMUNE_API_KEY || "",
-              },
-            }
-          );
-
-          if (response.ok) {
-            const data = await response.json();
-
-            if (data.logs && data.logs.events) {
-              // Transform logs to include agent info
-              const agentLogs = data.logs.events.map((event) => ({
-                type: "output",
-                agentId: agent.id,
-                agentName: agent.name,
-                content: event.message,
-                timestamp: new Date(event.timestamp),
-                logStreamName: event.logStreamName,
-                eventId: event.eventId,
-              }));
-
-              allLogs.push(...agentLogs);
-            }
-          }
-        } catch (error) {
-          console.error(`Error fetching logs for agent ${agent.id}:`, error);
-        }
-      }
-
-      // Sort all logs by timestamp (newest first) and limit to last 100
-      const sortedLogs = allLogs
-        .sort((a, b) => b.timestamp - a.timestamp)
-        .slice(0, 100);
-
-      setHistory(sortedLogs);
-    } catch (error) {
-      console.error("Error fetching user agent logs:", error);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (selectedAgentId) {
+      fetchLogsForSelectedAgent();
+    } else {
+      setHistory([]);
     }
-  };
+  }, [selectedAgentId, agents]);
+
+  const selectedAgent = agents.find((a) => a.id === selectedAgentId);
 
   return (
     <>
@@ -106,6 +108,7 @@ function Terminal() {
                 alignItems: "center",
                 justifyContent: "space-between",
                 marginBottom: "1.5rem",
+                flexWrap: "wrap",
               }}
             >
               <h2
@@ -117,21 +120,70 @@ function Terminal() {
                   fontWeight: 700,
                   textShadow: "0 2px 4px rgba(76, 175, 80, 0.3)",
                   letterSpacing: "0.2px",
+                  marginRight: "1rem",
                 }}
               >
                 Live Agent Logs
               </h2>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "1rem",
+                  flexGrow: 1,
+                  justifyContent: "center",
+                }}
+              >
+                {loadingAgents ? (
+                  <div>Loading agents...</div>
+                ) : agents.length > 0 ? (
+                  <>
+                    {selectedAgent?.image && (
+                      <img
+                        src={selectedAgent.image}
+                        alt={selectedAgent.name}
+                        style={{
+                          height: "40px",
+                          width: "40px",
+                          borderRadius: "50%",
+                        }}
+                      />
+                    )}
+                    <select
+                      value={selectedAgentId}
+                      onChange={(e) => setSelectedAgentId(e.target.value)}
+                      className="agent-selector"
+                      style={{
+                        padding: "8px 12px",
+                        borderRadius: "4px",
+                        border: "1px solid #4caf50",
+                        background: "#333",
+                        color: "white",
+                        fontSize: "1rem",
+                      }}
+                    >
+                      {agents.map((agent) => (
+                        <option key={agent.id} value={agent.id}>
+                          {agent.name}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                ) : (
+                  <div>No agents found.</div>
+                )}
+              </div>
               <button
                 className="terminal-refresh-button"
-                onClick={fetchUserAgentLogs}
-                disabled={loading}
+                onClick={fetchLogsForSelectedAgent}
+                disabled={loadingLogs || !selectedAgentId}
                 style={{ position: "relative", top: "auto", right: "auto" }}
               >
-                {loading ? "Refreshing..." : "🔄 Refresh"}
+                {loadingLogs ? "Refreshing..." : "🔄 Refresh"}
               </button>
             </div>
 
-            {loading ? (
+            {loadingLogs ? (
               <div className="terminal-loading">
                 <div
                   className="agent-spinner"
@@ -150,9 +202,9 @@ function Terminal() {
               </div>
             ) : history.length === 0 ? (
               <div className="terminal-no-logs">
-                No logs found for your deployed agents.
-                <br />
-                Deploy an agent to see their activity logs here.
+                {agents.length === 0 && !loadingAgents
+                  ? "No agents found for your account. Create an agent to see logs."
+                  : "No logs found for this agent."}
               </div>
             ) : (
               <div className="terminal-logs-container">

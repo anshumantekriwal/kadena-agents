@@ -18,8 +18,8 @@ const Navbar: React.FC = () => {
   if (!isLoggedIn) return null;
 
   const navigationItems = [
-    { label: "Dashboard", path: "/", icon: "" },
-    { label: "Chat", path: "/chat", icon: "" },
+    { label: "Chat", path: "/", icon: "" },
+    { label: "Dashboard", path: "/dashboard", icon: "" },
     { label: "Agents", path: "/agent", icon: "" },
     { label: "Terminal", path: "/terminal", icon: "" },
   ];
@@ -70,13 +70,13 @@ const Navbar: React.FC = () => {
             className="navbar-action-btn wallet-btn"
             onClick={() => setShowWallet(true)}
           >
-            💼
+            Wallet
           </button>
           <button
             className="navbar-action-btn logout-btn"
             onClick={handleLogout}
           >
-            🚪
+            Logout
           </button>
         </div>
       </div>

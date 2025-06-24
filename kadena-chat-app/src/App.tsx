@@ -67,6 +67,14 @@ const AppRoutes: React.FC = () => {
           path="/"
           element={
             <ProtectedRoute>
+              <Chat />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
           }
@@ -75,7 +83,7 @@ const AppRoutes: React.FC = () => {
           path="/chat"
           element={
             <ProtectedRoute>
-              <Chat />
+              <Navigate to="/" replace />
             </ProtectedRoute>
           }
         />

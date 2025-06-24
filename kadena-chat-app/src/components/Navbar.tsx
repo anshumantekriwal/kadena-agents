@@ -3,12 +3,14 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import WalletInfo from "./WalletInfo";
 import "./Navbar.css";
+import ImageUpload from "./ImageUpload";
 
 const Navbar: React.FC = () => {
   const { isLoggedIn, logout, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [showWallet, setShowWallet] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -73,6 +75,12 @@ const Navbar: React.FC = () => {
             Wallet
           </button>
           <button
+            className="navbar-action-btn upload-btn"
+            onClick={() => setShowUploadModal(true)}
+          >
+            Upload Image
+          </button>
+          <button
             className="navbar-action-btn logout-btn"
             onClick={handleLogout}
           >
@@ -97,6 +105,28 @@ const Navbar: React.FC = () => {
             <button
               className="wallet-overlay-close"
               onClick={() => setShowWallet(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showUploadModal && (
+        <div className="wallet-overlay">
+          <div
+            className="wallet-overlay-backdrop"
+            onClick={() => setShowUploadModal(false)}
+          />
+          <div
+            className={`wallet-overlay-content ${
+              showUploadModal ? "wallet-overlay-content-visible" : ""
+            }`}
+          >
+            <ImageUpload />
+            <button
+              className="wallet-overlay-close"
+              onClick={() => setShowUploadModal(false)}
             >
               Close
             </button>

@@ -502,6 +502,63 @@ const SocialAgentLauncher = () => {
             "Sending posting schedule request with payload:",
             postingPayload
           );
+
+          const response = await fetch(
+            "https://bh0sks2jsh.execute-api.ap-south-1.amazonaws.com/prod/create",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify(postingPayload),
+              signal: AbortSignal.timeout(1000000),
+            }
+          );
+
+          console.log("Received response from posting schedule API:", response);
+          console.log("Response status:", response.status);
+          console.log("Response ok:", response.ok);
+
+          if (response.ok) {
+            const responseText = await response.text();
+            console.log("Posting schedule API response text:", responseText);
+
+            // Try to parse the response as JSON if it's not empty
+            let responseData;
+            if (responseText.trim()) {
+              try {
+                responseData = JSON.parse(responseText);
+                console.log(
+                  "Posting schedule API call successful with parsed response:",
+                  responseData
+                );
+              } catch (parseError) {
+                console.log("Could not parse response as JSON:", parseError);
+                console.log("Raw response text was:", responseText);
+              }
+            } else {
+              console.log(
+                "Posting schedule API returned empty response with status:",
+                response.status
+              );
+            }
+          } else {
+            console.log(
+              "Posting schedule API call failed with status:",
+              response.status
+            );
+            const errorText = await response.text();
+            console.log("Error response text:", errorText);
+
+            // Try to parse error response as JSON if possible
+            try {
+              const errorJson = JSON.parse(errorText);
+              console.log("Parsed error response:", errorJson);
+            } catch (e) {
+              // If it's not JSON, the raw text is already logged
+            }
+          }
         } else {
           console.log(
             "Posting configuration is disabled. Skipping posting schedule setup."

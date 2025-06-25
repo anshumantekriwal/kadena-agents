@@ -504,7 +504,7 @@ const SocialAgentLauncher = () => {
           );
 
           const response = await fetch(
-            "https://bh0sks2jsh.execute-api.ap-south-1.amazonaws.com/prod/create",
+            "https://ieyyhrqs1h.execute-api.ap-south-1.amazonaws.com/prod/create",
             {
               method: "POST",
               headers: {

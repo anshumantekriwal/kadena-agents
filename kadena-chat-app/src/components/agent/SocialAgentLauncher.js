@@ -1521,30 +1521,6 @@ const SocialAgentLauncher = () => {
                       <button
                         onClick={() =>
                           setPostingClients((prev) =>
-                            prev.includes("terminal")
-                              ? prev.filter((c) => c !== "terminal")
-                              : [...prev, "terminal"]
-                          )
-                        }
-                        style={{
-                          backgroundColor: postingClients.includes("terminal")
-                            ? "#fff"
-                            : "#1a1a1a",
-                          padding: "8px 16px",
-                          borderRadius: "20px",
-                          color: postingClients.includes("terminal")
-                            ? "#000"
-                            : "#fff",
-                          border: "none",
-                          cursor: "pointer",
-                          fontSize: "14px",
-                        }}
-                      >
-                        Xade Terminal
-                      </button>
-                      <button
-                        onClick={() =>
-                          setPostingClients((prev) =>
                             prev.includes("x")
                               ? prev.filter((c) => c !== "x")
                               : [...prev, "x"]
@@ -1716,30 +1692,6 @@ const SocialAgentLauncher = () => {
                         marginBottom: "20px",
                       }}
                     >
-                      <button
-                        onClick={() =>
-                          setChatClients((prev) =>
-                            prev.includes("terminal")
-                              ? prev.filter((c) => c !== "terminal")
-                              : [...prev, "terminal"]
-                          )
-                        }
-                        style={{
-                          backgroundColor: chatClients.includes("terminal")
-                            ? "#fff"
-                            : "#1a1a1a",
-                          padding: "8px 16px",
-                          borderRadius: "20px",
-                          color: chatClients.includes("terminal")
-                            ? "#000"
-                            : "#fff",
-                          border: "none",
-                          cursor: "pointer",
-                          fontSize: "14px",
-                        }}
-                      >
-                        Xade Terminal
-                      </button>
                       <button
                         onClick={() =>
                           setChatClients((prev) =>
@@ -2339,9 +2291,7 @@ const SocialAgentLauncher = () => {
                             Clients:{" "}
                             {postingClients.length > 0
                               ? postingClients
-                                  .map((c) =>
-                                    c === "terminal" ? "Xade Terminal" : "X"
-                                  )
+                                  .map((c) => "X")
                                   .join(", ")
                               : "None"}
                             <br />
@@ -2359,9 +2309,7 @@ const SocialAgentLauncher = () => {
                             Clients:{" "}
                             {chatClients.length > 0
                               ? chatClients
-                                  .map((c) =>
-                                    c === "terminal" ? "Xade Terminal" : "X"
-                                  )
+                                  .map((c) => "X")
                                   .join(", ")
                               : "None"}
                             <br />

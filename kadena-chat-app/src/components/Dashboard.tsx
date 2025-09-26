@@ -116,12 +116,6 @@ const Dashboard: React.FC = () => {
       icon: "💬",
       path: "/chat",
     },
-    {
-      title: "Open Terminal",
-      subtitle: "Access terminal interface",
-      icon: "⚡",
-      path: "/terminal",
-    },
   ];
 
   return (
@@ -133,7 +127,7 @@ const Dashboard: React.FC = () => {
             Welcome back, {user?.email?.split("@")[0] || "User"}
           </h1>
           <p className="dashboard-subtitle">
-            Manage your agents, chat, and explore the terminal
+            Manage your agents and chat
           </p>
         </div>
 

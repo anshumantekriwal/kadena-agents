@@ -23,7 +23,6 @@ const Navbar: React.FC = () => {
     { label: "Chat", path: "/", icon: "" },
     { label: "Dashboard", path: "/dashboard", icon: "" },
     { label: "Agent Launcher", path: "/agent", icon: "" },
-    { label: "Terminal", path: "/terminal", icon: "" },
   ];
 
   return (

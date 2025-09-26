@@ -15,7 +15,6 @@ import { WalletProvider } from "./context/WalletContext";
 import Navbar from "./components/Navbar";
 import AgentLauncher from "./components/agent/AgentLauncher";
 import AgentPage from "./components/agent/AgentPage";
-import Terminal from "./components/terminal/Terminal";
 import WalletInfo from "./components/WalletInfo";
 
 // Protected route component
@@ -100,14 +99,6 @@ const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute>
               <AgentPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/terminal"
-          element={
-            <ProtectedRoute>
-              <Terminal />
             </ProtectedRoute>
           }
         />

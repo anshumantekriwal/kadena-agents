@@ -63,43 +63,77 @@ export const buildGetBalanceTransaction = ({
 export const getBalance = async (
   accountName: string,
   chainId: ChainId,
-  tokenName: string = "coin"
+  tokenName: string = "coin",
+  retries: number = 2
 ) => {
   const kadenaClient = getKadenaClient(chainId);
-  try {
-    const transaction = buildGetBalanceTransaction({
-      chainId,
-      accountName,
-      tokenName,
-    });
-    const response = await kadenaClient.dirtyRead(transaction);
-    if (response.result.status === "success") {
-      console.log(`Balance of ${tokenName}:`, response.result.data);
-      return (response.result as any).data as number | DecimalBalance;
+  
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const transaction = buildGetBalanceTransaction({
+        chainId,
+        accountName,
+        tokenName,
+      });
+      
+      const response = await kadenaClient.dirtyRead(transaction);
+      if (response.result.status === "success") {
+        console.log(`Balance of ${tokenName}:`, response.result.data);
+        return (response.result as any).data as number | DecimalBalance;
+      }
+      return 0;
+    } catch (error) {
+      console.error(`Failed to get ${tokenName} balance (attempt ${attempt + 1}):`, error);
+      
+      // If this is the last attempt, throw the error
+      if (attempt === retries) {
+        throw error;
+      }
+      
+      // Wait before retrying (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 100));
     }
-    return 0;
-  } catch (error) {
-    console.error(`Failed to get ${tokenName} balance:`, error);
-    return 0;
   }
+  
+  return 0;
 };
 
 export const getAllBalances = async (
   accountName: string,
   chainId: ChainId
 ): Promise<TokenBalance[]> => {
-  const balances = await Promise.all(
-    Object.entries(tokens).map(async ([tokenName, tokenInfo]) => {
-      const balance = await getBalance(accountName, chainId, tokenName);
-      return {
-        symbol: tokenInfo.symbol,
-        balance:
-          typeof balance === "object" && (balance as DecimalBalance)?.decimal
-            ? parseFloat((balance as DecimalBalance).decimal)
-            : (balance as number),
-      };
-    })
-  );
+  const tokenEntries = Object.entries(tokens);
+  const balances: TokenBalance[] = [];
+  
+  // Process tokens in batches to avoid overwhelming the network
+  const batchSize = 5;
+  for (let i = 0; i < tokenEntries.length; i += batchSize) {
+    const batch = tokenEntries.slice(i, i + batchSize);
+    
+    const batchPromises = batch.map(async ([tokenName, tokenInfo]) => {
+      try {
+        const balance = await getBalance(accountName, chainId, tokenName);
+        return {
+          symbol: tokenInfo.symbol,
+          balance:
+            typeof balance === "object" && (balance as DecimalBalance)?.decimal
+              ? parseFloat((balance as DecimalBalance).decimal)
+              : (balance as number),
+        };
+      } catch (error) {
+        console.error(`Failed to get ${tokenName} balance:`, error);
+        return null; // Return null for failed requests
+      }
+    });
+    
+    const batchResults = await Promise.all(batchPromises);
+    balances.push(...batchResults.filter((result): result is TokenBalance => result !== null));
+    
+    // Add a small delay between batches to be gentle on the network
+    if (i + batchSize < tokenEntries.length) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  }
 
   console.log(balances);
   // Filter out zero balances

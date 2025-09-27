@@ -167,7 +167,7 @@ const AgentPage = () => {
     }
   }, [agentData?.agent_deployed, agentId]);
 
-  // Fetch agent transactions using Tatum API
+  // Fetch agent transactions using Kadena Indexer API
   const fetchAgentTransactions = async () => {
     if (!agentData?.agent_wallet) return;
 
@@ -175,76 +175,199 @@ const AgentPage = () => {
     setTransactionsError(null);
 
     try {
-      // Use the wallet address directly (it should already be in the correct format)
-      const accountName = encodeURIComponent(agentData.agent_wallet);
-
       console.log("Account Name:", agentData.agent_wallet);
 
-      // Use Tatum API to get Kadena transactions
-      const response = await fetch(
-        `https://api.tatum.io/v4/data/transactions/kadena?accountName=${agentData.agent_wallet}&chainId=2`,
-        {
-          headers: {
-            accept: "application/json",
-            "x-api-key": API_KEYS.TATUM,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch transactions: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-
-      console.log("Tatum API Response:", data);
-
-      // Transform Tatum API response to match our expected format
-      if (
-        data &&
-        data.data &&
-        data.data.transactions &&
-        data.data.transactions.edges
-      ) {
-        const transformedTransactions = data.data.transactions.edges.map(
-          (edge, index) => {
-            const tx = edge.node;
-            return {
-              node: {
-                hash: tx.hash || `tx_${index}`,
-                cmd: {
-                  meta: {
-                    chainId: tx.cmd?.meta?.chainId || 2,
-                    gasPrice: tx.cmd?.meta?.gasPrice || 0.000001,
-                    sender: tx.cmd?.meta?.sender || agentData.agent_wallet,
-                    creationTime: tx.cmd?.meta?.creationTime,
-                    gasLimit: tx.cmd?.meta?.gasLimit,
-                    ttl: tx.cmd?.meta?.ttl,
-                  },
-                  payload: tx.cmd?.payload,
-                  nonce: tx.cmd?.nonce,
-                  signers: tx.cmd?.signers,
-                },
-                result: tx.result,
-                sigs: tx.sigs,
-              },
-              // Add additional Tatum-specific fields
-              tatumData: {
-                timestamp: tx.cmd?.meta?.creationTime,
-                status: tx.result?.badResult ? "FAILED" : "SUCCESS",
-                gas: tx.result?.gas,
-                events: tx.result?.events,
-              },
-            };
+      // First, get account details using fungibleChainAccount
+      const accountQuery = `
+        query {
+          fungibleChainAccount(accountName: "${agentData.agent_wallet}", chainId: "2", fungibleName: "coin") {
+            accountName
+            balance
+            chainId
+            fungibleName
+            transfers(first: 10) {
+              edges {
+                node {
+                  amount
+                  block {
+                    height
+                    hash
+                  }
+                  creationTime
+                  receiverAccount
+                  senderAccount
+                }
+              }
+            }
           }
-        );
+        }
+      `;
 
-        setTransactions(transformedTransactions);
-      } else {
-        setTransactions([]);
+      // Then, get transaction history
+      const transactionsQuery = `
+        query {
+          transactions(accountName: "${agentData.agent_wallet}", chainId: "2", first: 20) {
+            edges {
+              node {
+                hash
+                cmd {
+                  meta {
+                    chainId
+                    gasPrice
+                    sender
+                    creationTime
+                    gasLimit
+                    ttl
+                  }
+                  payload {
+                    ... on ExecutionPayload {
+                      code
+                    }
+                  }
+                  nonce
+                  signers {
+                    pubkey
+                    clist {
+                      name
+                      args
+                    }
+                  }
+                }
+                result {
+                  ... on TransactionResult {
+                    gas
+                    goodResult
+                    badResult
+                    events {
+                      edges {
+                        node {
+                          name
+                          parameters
+                          parameterText
+                        }
+                      }
+                    }
+                  }
+                }
+                sigs {
+                  sig
+                }
+              }
+            }
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+          }
+        }
+      `;
+
+      // Execute both queries
+      const [accountResponse, transactionsResponse] = await Promise.all([
+        fetch(API_ENDPOINTS.KADENA_INDEXER, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": API_KEYS.KADENA_INDEXER,
+          },
+          body: JSON.stringify({
+            query: accountQuery,
+          }),
+        }),
+        fetch(API_ENDPOINTS.KADENA_INDEXER, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": API_KEYS.KADENA_INDEXER,
+          },
+          body: JSON.stringify({
+            query: transactionsQuery,
+          }),
+        }),
+      ]);
+
+      if (!accountResponse.ok || !transactionsResponse.ok) {
+        throw new Error(`Failed to fetch data: ${accountResponse.statusText || transactionsResponse.statusText}`);
       }
+
+      const [accountData, transactionsData] = await Promise.all([
+        accountResponse.json(),
+        transactionsResponse.json(),
+      ]);
+
+      console.log("Account Data:", accountData);
+      console.log("Transactions Data:", transactionsData);
+
+      // Transform the response to match our expected format
+      const transformedTransactions = [];
+
+      // Add account info as first "transaction" for display
+      if (accountData?.data?.fungibleChainAccount) {
+        const account = accountData.data.fungibleChainAccount;
+        transformedTransactions.push({
+          node: {
+            hash: `account_${account.accountName}`,
+            cmd: {
+              meta: {
+                chainId: account.chainId,
+                gasPrice: 0.000001,
+                sender: account.accountName,
+                creationTime: Date.now(),
+                gasLimit: 0,
+                ttl: 0,
+              },
+              payload: {
+                exec: {
+                  code: `(coin.details "${account.accountName}")`,
+                },
+              },
+              nonce: "",
+              signers: [],
+            },
+            result: {
+              status: "success",
+              data: {
+                balance: account.balance,
+                accountName: account.accountName,
+                fungibleName: account.fungibleName,
+              },
+            },
+            sigs: [],
+          },
+          indexerData: {
+            timestamp: Date.now(),
+            status: "ACCOUNT_INFO",
+            balance: account.balance,
+            transfers: account.transfers?.edges || [],
+          },
+        });
+      }
+
+      // Add actual transactions
+      if (transactionsData?.data?.transactions?.edges) {
+        const transactionEdges = transactionsData.data.transactions.edges.map(edge => ({
+          node: {
+            ...edge.node,
+            result: {
+              ...edge.node.result,
+              status: edge.node.result?.badResult ? "failed" : "success",
+            },
+          },
+          indexerData: {
+            timestamp: edge.node.cmd?.meta?.creationTime || Date.now(),
+            status: edge.node.result?.badResult ? "FAILED" : "SUCCESS",
+            gas: edge.node.result?.gas || 0,
+            events: edge.node.result?.events?.edges?.map(e => e.node) || [],
+            goodResult: edge.node.result?.goodResult,
+            badResult: edge.node.result?.badResult,
+          },
+        }));
+        transformedTransactions.push(...transactionEdges);
+      }
+
+      setTransactions(transformedTransactions);
     } catch (error) {
-      console.error("Error fetching agent transactions:", error);
+      console.error("Error fetching agent data:", error);
       setTransactionsError(error.message);
       setTransactions([]);
     } finally {
@@ -999,9 +1122,9 @@ const AgentPage = () => {
                       ? "failed"
                       : "success";
                     const gasUsed =
-                      tx.node.result?.gas || tx.tatumData?.gas || 0;
+                      tx.node.result?.gas || tx.indexerData?.gas || 0;
                     const timestamp =
-                      tx.node.cmd.meta.creationTime || tx.tatumData?.timestamp;
+                      tx.node.cmd.meta.creationTime || tx.indexerData?.timestamp;
 
                     return (
                       <div

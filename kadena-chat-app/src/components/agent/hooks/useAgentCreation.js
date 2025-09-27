@@ -9,15 +9,6 @@ export const useAgentCreation = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const validateInviteCode = (inviteCode, setError) => {
-    if (inviteCode.toLowerCase() === "harshal") {
-      setError("");
-      return true;
-    } else {
-      setError("Invalid invite code. Please try again.");
-      return false;
-    }
-  };
 
   const handleFileUpload = (event, setAgentImage) => {
     const file = event.target.files[0];
@@ -243,7 +234,6 @@ export const useAgentCreation = () => {
   };
 
   return {
-    validateInviteCode,
     handleFileUpload,
     handleAIRating,
     fetchAICodeAndInterval,

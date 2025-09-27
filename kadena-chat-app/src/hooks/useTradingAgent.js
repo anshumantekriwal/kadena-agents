@@ -12,8 +12,6 @@ export const useTradingAgent = () => {
   const [agentImage, setAgentImage] = useState(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showAgentLauncher, setShowAgentLauncher] = useState(false);
-  const [inviteCode, setInviteCode] = useState("");
-  const [inviteError, setInviteError] = useState("");
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState("trading");
@@ -97,14 +95,6 @@ export const useTradingAgent = () => {
     };
   }, []);
 
-  const validateInviteCode = () => {
-    if (inviteCode.toLowerCase() === "harshal") {
-      setInviteError("");
-      handleNext();
-    } else {
-      setInviteError("Invalid invite code. Please try again.");
-    }
-  };
 
   const handleNext = () => {
     if (currentStep < slides.length - 1) {
@@ -378,8 +368,6 @@ export const useTradingAgent = () => {
     agentImage,
     imageLoaded,
     showAgentLauncher,
-    inviteCode,
-    inviteError,
     imagesLoaded,
     isCreating,
     selectedStrategy,
@@ -406,9 +394,7 @@ export const useTradingAgent = () => {
     setAgentName,
     setAgentDescription,
     setAgentBehavior,
-    setInviteCode,
     setSearchTerm,
-    validateInviteCode,
     handleNext,
     handleBack,
     handleFileUpload,

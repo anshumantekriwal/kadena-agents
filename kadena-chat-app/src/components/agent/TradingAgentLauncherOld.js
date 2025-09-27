@@ -20,8 +20,6 @@ const TradingAgentLauncher = () => {
   const [agentImage, setAgentImage] = useState(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showAgentLauncher, setShowAgentLauncher] = useState(false);
-  const [inviteCode, setInviteCode] = useState("");
-  const [inviteError, setInviteError] = useState("");
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const containerRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -48,9 +46,6 @@ const TradingAgentLauncher = () => {
     {
       image:
         "https://wbsnlpviggcnwqfyfobh.supabase.co/storage/v1/object/public/app//picture2.png",
-      title: "Enter Invite Code",
-      content: "Please enter your invitation code to continue",
-      hasInviteCode: true,
     },
     {
       image:
@@ -146,14 +141,6 @@ const TradingAgentLauncher = () => {
     );
   }
 
-  const validateInviteCode = () => {
-    if (inviteCode.toLowerCase() === "harshal") {
-      setInviteError("");
-      handleNext();
-    } else {
-      setInviteError("Invalid invite code. Please try again.");
-    }
-  };
 
   const handleNext = () => {
     if (currentStep < slides.length - 1) {
@@ -461,61 +448,7 @@ const TradingAgentLauncher = () => {
                 <h2 style={{ marginBottom: "1.5rem" }}>
                   {slides[currentStep].title}
                 </h2>
-                {slides[currentStep].hasInviteCode ? (
-                  <div style={{ width: "90%" }}>
-                    <p style={{ marginBottom: "1.5rem" }}>
-                      {slides[currentStep].content}
-                    </p>
-                    <input
-                      type="text"
-                      value={inviteCode}
-                      onChange={(e) => {
-                        setInviteCode(e.target.value);
-                        setInviteError("");
-                      }}
-                      placeholder="Enter invite code"
-                      style={{
-                        width: "100%",
-                        padding: "10px 12px",
-                        marginBottom: "16px",
-                        backgroundColor: "#1a1a1a",
-                        border: inviteError ? "1px solid red" : "none",
-                        borderRadius: "10px",
-                        color: "white",
-                        height: "40px",
-                        fontSize: "14px",
-                      }}
-                    />
-                    {inviteError && (
-                      <p
-                        style={{
-                          color: "red",
-                          fontSize: "14px",
-                          marginBottom: "16px",
-                        }}
-                      >
-                        {inviteError}
-                      </p>
-                    )}
-                    <button
-                      className="next-button"
-                      onClick={validateInviteCode}
-                      style={{
-                        width: "100%",
-                        backgroundColor: !inviteCode.trim() ? "#666" : "white",
-                        color: "black",
-                        padding: "12px",
-                        borderRadius: "8px",
-                        border: "none",
-                        cursor: !inviteCode.trim() ? "default" : "pointer",
-                        fontWeight: "500",
-                      }}
-                      disabled={!inviteCode.trim()}
-                    >
-                      Continue
-                    </button>
-                  </div>
-                ) : slides[currentStep].hasForm ? (
+                {slides[currentStep].hasForm ? (
                   <>
                     <p>{slides[currentStep].content}</p>
                     <input

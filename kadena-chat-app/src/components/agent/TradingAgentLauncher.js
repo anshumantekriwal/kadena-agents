@@ -10,7 +10,6 @@ import { useAuth } from "../../context/AuthContext";
 import { useAgentCreation } from "./hooks/useAgentCreation";
 
 // Import slide components
-import InviteSlide from "./slides/InviteSlide";
 import BasicInfoSlide from "./slides/BasicInfoSlide";
 import ImageUploadSlide from "./slides/ImageUploadSlide";
 import BehaviorSlide from "./slides/BehaviorSlide";
@@ -20,7 +19,6 @@ const TradingAgentLauncher = () => {
   // Consolidated form state
   const [formState, setFormState] = useState({
     currentStep: 0,
-    inviteCode: "",
     agentName: "",
     agentDescription: "",
     agentImage: null,
@@ -34,7 +32,6 @@ const TradingAgentLauncher = () => {
   const [uiState, setUIState] = useState({
     showAgentLauncher: false,
     isCreating: false,
-    inviteError: "",
     imagesLoaded: false,
     isGeneratingQuestions: false,
     isFetchingAICode: false,
@@ -53,7 +50,6 @@ const TradingAgentLauncher = () => {
 
   // Business logic hooks
   const {
-    validateInviteCode,
     handleFileUpload,
     handleAIRating,
     fetchAICodeAndInterval,
@@ -63,13 +59,6 @@ const TradingAgentLauncher = () => {
 
   // Static data
   const slides = [
-    {
-      image:
-        "https://wbsnlpviggcnwqfyfobh.supabase.co/storage/v1/object/public/app//picture2.png",
-      title: "Enter Invite Code",
-      content: "Please enter your invitation code to continue",
-      component: InviteSlide,
-    },
     {
       image:
         "https://wbsnlpviggcnwqfyfobh.supabase.co/storage/v1/object/public/app//picture2.png",
@@ -276,7 +265,6 @@ const TradingAgentLauncher = () => {
                   uiState={uiState}
                   updateForm={updateForm}
                   updateUI={updateUI}
-                  validateInviteCode={validateInviteCode}
                   handleFileUpload={handleFileUpload}
                   handleAIRating={wrappedHandleAIRating}
                   handleCreateKeypair={wrappedHandleCreateKeypair}

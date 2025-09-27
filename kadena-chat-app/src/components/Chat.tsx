@@ -94,12 +94,38 @@ const Chat: React.FC = () => {
     }
   }, []);
 
+  // Function to extract answer from JSON responses
+  const extractAnswerFromJson = (content: string): string | null => {
+    try {
+      // Try to parse as JSON
+      const parsed = JSON.parse(content);
+      
+      // Check if it's an object with an "answer" property
+      if (parsed && typeof parsed === 'object' && 'answer' in parsed) {
+        return parsed.answer;
+      }
+      
+      return null;
+    } catch (error) {
+      // Not valid JSON or doesn't have answer property
+      return null;
+    }
+  };
+
   // Format transaction response for display
   const formatTransactionResponse = (response: any): string => {
     try {
       // Handle null or undefined response
       if (!response) {
         return "I received an empty response. Please try again.";
+      }
+
+      // Check if response is a string that might contain JSON with answer
+      if (typeof response === 'string') {
+        const extractedAnswer = extractAnswerFromJson(response);
+        if (extractedAnswer) {
+          return extractedAnswer;
+        }
       }
 
       // Handle quote-only response
@@ -350,6 +376,19 @@ const Chat: React.FC = () => {
 
       // Handle cases where the response is a JSON string
       if (typeof apiResponse === "string") {
+        // First check if it's a JSON with answer field
+        const extractedAnswer = extractAnswerFromJson(apiResponse);
+        if (extractedAnswer) {
+          assistantMessage = {
+            role: "assistant",
+            content: extractedAnswer,
+            isMarkdown: false,
+          };
+          setMessages((prev) => [...prev, assistantMessage]);
+          return;
+        }
+        
+        // If not, try to parse as regular JSON
         try {
           apiResponse = JSON.parse(apiResponse);
         } catch (e) {

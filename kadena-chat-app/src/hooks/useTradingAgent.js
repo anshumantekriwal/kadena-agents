@@ -197,7 +197,7 @@ export const useTradingAgent = () => {
     setIsCreating(true);
     try {
       const walletRes = await fetch(
-        "https://kadena-wallet-1.onrender.com/api/create-wallet"
+        "https://kadena-wallet-99b8.onrender.com/api/create-wallet"
       );
       if (!walletRes.ok) {
         const errorText = await walletRes.text();

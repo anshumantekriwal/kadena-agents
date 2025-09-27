@@ -607,10 +607,10 @@ const Chat: React.FC = () => {
                   <div className="disclaimer-content">
                     <h4>⚠️ Important Disclaimer</h4>
                     <p>
-                      Agent K is an experimental AI assistant. Always verify
-                      transaction details from reliable sources before
-                      confirming. Transactions on the blockchain are
-                      irreversible.
+                      This chat interface has been created to simplify the transacting experience on Kadena. 
+                      Agent K is an experimental AI assistant and any information provided by the AI might be false. 
+                      Always verify transaction details from reliable sources before confirming. 
+                      Transactions on the blockchain are irreversible.
                     </p>
                     <p>
                       <strong>Security Warning:</strong> NEVER share your

@@ -100,14 +100,19 @@ const Chat: React.FC = () => {
       // Try to parse as JSON
       const parsed = JSON.parse(content);
       
-      // Check if it's an object with an "answer" property
-      if (parsed && typeof parsed === 'object' && 'answer' in parsed) {
-        return parsed.answer;
+      // Check if it's an object with an "answer" or "definition" property
+      if (parsed && typeof parsed === 'object') {
+        if ('answer' in parsed) {
+          return parsed.answer;
+        }
+        if ('definition' in parsed) {
+          return parsed.definition;
+        }
       }
       
       return null;
     } catch (error) {
-      // Not valid JSON or doesn't have answer property
+      // Not valid JSON or doesn't have answer/definition property
       return null;
     }
   };

@@ -133,6 +133,53 @@ const Chat: React.FC = () => {
         }
       }
 
+      // Handle structured JSON responses with query/result format
+      if (response && typeof response === 'object' && 'query' in response && 'result' in response) {
+        const { query, result } = response;
+        let formattedResponse = `## ${query}\n\n`;
+        
+        if (result.description) {
+          formattedResponse += `${result.description}\n\n`;
+        }
+        
+        // Format current mainnet data
+        if (result.currentMainnet) {
+          formattedResponse += `### Current Mainnet Performance\n`;
+          if (result.currentMainnet.chainCount) {
+            formattedResponse += `- **Chain Count:** ${result.currentMainnet.chainCount}\n`;
+          }
+          if (result.currentMainnet.measuredTPS) {
+            formattedResponse += `- **Measured TPS:** ${result.currentMainnet.measuredTPS}\n`;
+          }
+          formattedResponse += `\n`;
+        }
+        
+        // Format theoretical capacity
+        if (result.theoreticalCapacity) {
+          formattedResponse += `### Theoretical Capacity\n`;
+          if (result.theoreticalCapacity.perChain) {
+            formattedResponse += `- **Per Chain:** ${result.theoreticalCapacity.perChain}\n`;
+          }
+          if (result.theoreticalCapacity.aggregate) {
+            formattedResponse += `- **Aggregate:** ${result.theoreticalCapacity.aggregate}\n`;
+          }
+          if (result.theoreticalCapacity.scaling) {
+            formattedResponse += `- **Scaling:** ${result.theoreticalCapacity.scaling}\n`;
+          }
+          formattedResponse += `\n`;
+        }
+        
+        // Format notes
+        if (result.notes && Array.isArray(result.notes)) {
+          formattedResponse += `### Important Notes\n`;
+          result.notes.forEach((note: string) => {
+            formattedResponse += `- ${note}\n`;
+          });
+        }
+        
+        return formattedResponse;
+      }
+
       // Handle quote-only response
       if ("amountOut" in response && "priceImpact" in response) {
         const quoteResponse = response as QuoteResponse;
@@ -248,8 +295,8 @@ const Chat: React.FC = () => {
         }`;
       }
 
-      // Default JSON formatting for other response types
-      return `\`\`\`json\n${JSON.stringify(response, null, 2)}\n\`\`\``;
+      // Default formatting for other response types (clean text)
+      return JSON.stringify(response, null, 2);
     } catch (error) {
       console.error("Error formatting transaction response:", error);
       return `I encountered an error while formatting the response. Please try again.`;
@@ -263,8 +310,16 @@ const Chat: React.FC = () => {
         return "";
       }
 
+      // Remove JSON formatting, triple backticks, and curly braces
+      let cleanContent = content
+        .replace(/```json\s*([\s\S]*?)```/g, "$1")
+        .replace(/```\s*([\s\S]*?)```/g, "$1")
+        .replace(/\{|\}/g, "")
+        .replace(/^\s*"([^"]+)":\s*/gm, "$1: ")
+        .replace(/,\s*$/gm, "");
+
       // Convert headers: # Header -> <h1>Header</h1>
-      let html = content
+      let html = cleanContent
         .replace(/^### (.*$)/gm, "<h3>$1</h3>")
         .replace(/^## (.*$)/gm, "<h2>$1</h2>")
         .replace(/^# (.*$)/gm, "<h1>$1</h1>");
@@ -274,9 +329,6 @@ const Chat: React.FC = () => {
 
       // Convert italic: *text* -> <em>text</em>
       html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
-
-      // Convert code blocks first (before inline code)
-      html = html.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>");
 
       // Convert inline code: `code` -> <code>code</code>
       html = html.replace(/`([^`]+)`/g, "<code>$1</code>");

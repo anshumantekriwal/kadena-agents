@@ -11,6 +11,7 @@ import {
   TransactionQuote,
 } from "../services/api";
 import walletService, { SignAndSubmitResult } from "../services/walletService";
+import openaiService from "../services/openaiService";
 import WalletInfo from "./WalletInfo";
 import "./Chat.css";
 import { getAllBalances } from "../utils/transactions";
@@ -469,11 +470,17 @@ const Chat: React.FC = () => {
       }
 
       // Check if the response is a transaction that needs user confirmation
+      console.log('🟡 CHAT: Analyzing response type for formatting decision');
+      console.log('🟡 CHAT: Response has transaction property:', !!(apiResponse && typeof apiResponse === "object" && "transaction" in apiResponse));
+      console.log('🟡 CHAT: Response has quote properties:', !!(apiResponse && typeof apiResponse === "object" && ("amountOut" in apiResponse || "priceImpact" in apiResponse)));
+      console.log('🟡 CHAT: OpenAI service detects as transactional:', openaiService.isTransactionalResponse(apiResponse));
+      
       if (
         apiResponse &&
         typeof apiResponse === "object" &&
         "transaction" in apiResponse
       ) {
+        console.log('🟡 CHAT: Using transaction formatting (has transaction property)');
         setPendingTransaction(apiResponse as TransactionResponse);
         assistantMessage = {
           role: "assistant",
@@ -485,35 +492,37 @@ const Chat: React.FC = () => {
         typeof apiResponse === "object" &&
         ("amountOut" in apiResponse || "priceImpact" in apiResponse)
       ) {
+        console.log('🟡 CHAT: Using transaction formatting (has quote properties)');
         // Handle quote-only responses
         assistantMessage = {
           role: "assistant",
           content: formatTransactionResponse(apiResponse),
           isMarkdown: true,
         };
-      } else if (typeof apiResponse === "string") {
-        // Handle string responses
-        assistantMessage = {
-          role: "assistant",
-          content: apiResponse,
-          isMarkdown: false,
-        };
-      } else if (apiResponse && typeof apiResponse === "object") {
-        // Handle other object responses (JSON format)
+      } else if (openaiService.isTransactionalResponse(apiResponse)) {
+        console.log('🟡 CHAT: Using transaction formatting (detected as transactional by OpenAI service)');
+        // Handle other transactional responses
         assistantMessage = {
           role: "assistant",
           content: formatTransactionResponse(apiResponse),
           isMarkdown: true,
         };
       } else {
-        // Fallback for any other response type
+        // Handle non-transactional responses with OpenAI formatting
+        console.log('🟢 CHAT: Detected non-transactional response, calling OpenAI service');
+        console.log('🟢 CHAT: API response type:', typeof apiResponse);
+        console.log('🟢 CHAT: API response content:', apiResponse);
+        
+        const openaiResult = await openaiService.formatResponse(apiResponse, userMessage.content);
+        console.log('🟢 CHAT: OpenAI service returned:', openaiResult);
+        
         assistantMessage = {
           role: "assistant",
-          content: String(
-            apiResponse || "I received an empty response. Please try again."
-          ),
-          isMarkdown: false,
+          content: openaiResult.formattedResponse,
+          isMarkdown: openaiResult.isMarkdown,
         };
+        
+        console.log('🟢 CHAT: Final assistant message created:', assistantMessage);
       }
 
       setMessages((prev) => [...prev, assistantMessage]);

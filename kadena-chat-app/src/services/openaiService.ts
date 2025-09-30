@@ -761,12 +761,11 @@ class OpenAIService {
       console.log('🔵 OPENAI SERVICE: OpenAI API response received:', response.data);
       
       const formattedContent = response.data.choices[0]?.message?.content || '';
-      const sanitizedContent = this.fixPlaceholderLinks(formattedContent);
       console.log('🔵 OPENAI SERVICE: Extracted formatted content:', formattedContent);
       
       console.log('🔵 OPENAI SERVICE: Successfully formatted response with OpenAI');
       return {
-        formattedResponse: sanitizedContent,
+        formattedResponse: formattedContent,
         isMarkdown: true
       };
     } catch (error) {
@@ -794,23 +793,6 @@ class OpenAIService {
         formattedResponse: this.getFallbackFormatting(originalResponse),
         isMarkdown: true
       };
-    }
-  }
-
-  /**
-   * Replace placeholder links like example.com with plain text to avoid misleading URLs.
-   */
-  private fixPlaceholderLinks(content: string): string {
-    if (!content || typeof content !== 'string') return content;
-    try {
-      let out = content;
-      // Remove markdown links that point to example.com and keep the label
-      out = out.replace(/\[([^\]]+)\]\(https?:\/\/(?:www\.)?example\.com[^)]*\)/gi, '$1');
-      // Replace raw example.com URLs with plain text (remove linking syntax if any slipped through)
-      out = out.replace(/https?:\/\/(?:www\.)?example\.com[^\s)\]]*/gi, '');
-      return out;
-    } catch {
-      return content;
     }
   }
 

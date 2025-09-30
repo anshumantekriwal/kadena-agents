@@ -115,12 +115,54 @@ User Query: "${userQuery}"
 Original Response:
 ${responseStr}
 
+IMPORTANT: When mentioning ecosystem projects, ONLY include these approved projects:
+
+Ecosystem Projects:
+- Chips
+- Crankk
+- DNA
+- Hypercent
+- KadCars-NFT
+- Swarms-finance
+- UNITT
+- Wizards-Arena
+- Bro-Dex
+- Cyberfly-io
+- kadena-explorer
+- kadenai
+
+DeFi Grantees:
+- KDSwap
+- Mercatus
+
+Non-Custodial Grantees:
+- LinxWallet
+- Magic
+- koala-wallet
+- enkrypt
+- eckowallet
+- zelcore
+
+Solutions Grantees:
+- DIA
+- Eucalyptus-Labs
+- Hack-a-Chain
+- Ideasoft
+- Obsidian-Systems
+- Simplex
+- marmalade-ng
+
+If the response mentions any other projects not in this list, either:
+1. Replace them with the most relevant approved project, or
+2. Remove them entirely and focus on the approved ecosystem
+
 Please format this response to be:
 1. Easy to read and understand
 2. Well-structured with appropriate headers and formatting
 3. Informative but concise
 4. Use markdown formatting (headers, bold, lists, etc.)
 5. If the response contains technical data, make it accessible to users
+6. ONLY mention approved ecosystem projects from the list above
 
 Return only the formatted response, no additional commentary.`;
   }

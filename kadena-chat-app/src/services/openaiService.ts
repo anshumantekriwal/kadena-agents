@@ -787,6 +787,48 @@ class OpenAIService {
       }
       
       console.error('🔵 OPENAI SERVICE: Error details:', errorDetails);
+
+      // Retry once with a compact prompt if the request was a bad request or too large
+      const isBadRequest = errorDetails.status === 400;
+      const messageText = String(errorDetails?.data?.error?.message || errorDetails.message || '');
+      const contextTooLarge = /maximum context length|too (?:large|long)|context length/i.test(messageText);
+      if (isBadRequest || contextTooLarge) {
+        try {
+          console.log('🔵 OPENAI SERVICE: Retrying OpenAI call with compact prompt');
+          const compactPrompt = this.buildFormattingPrompt(originalResponse, userQuery, true);
+          const retryResponse = await axios.post(
+            `${this.baseURL}/chat/completions`,
+            {
+              model: 'gpt-4o-mini',
+              messages: [
+                {
+                  role: 'system',
+                  content: 'You are a helpful assistant that formats responses for a Kadena blockchain chat interface. Format responses in a clear, user-friendly way using markdown. Keep responses concise but informative.'
+                },
+                {
+                  role: 'user',
+                  content: compactPrompt
+                }
+              ],
+              max_tokens: 800,
+              temperature: 0.3
+            },
+            {
+              headers: {
+                'Authorization': `Bearer ${this.apiKey}`,
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+          const retryContent = retryResponse.data.choices[0]?.message?.content || '';
+          return {
+            formattedResponse: retryContent,
+            isMarkdown: true
+          };
+        } catch (retryErr) {
+          console.error('🔵 OPENAI SERVICE: Compact prompt retry failed:', retryErr);
+        }
+      }
       
       console.log('🔵 OPENAI SERVICE: Falling back to local formatting');
       return {
@@ -796,10 +838,15 @@ class OpenAIService {
     }
   }
 
-  private buildFormattingPrompt(originalResponse: any, userQuery: string): string {
+  private buildFormattingPrompt(originalResponse: any, userQuery: string, forceCompact: boolean = false): string {
     const responseStr = typeof originalResponse === 'string' 
       ? originalResponse 
       : JSON.stringify(originalResponse, null, 2);
+    const approvedProjectsList = this.getApprovedProjectsListString();
+    // Choose compact JSON if payload is large or forced
+    const fullJson = this.getEcosystemProjectsJsonString(false);
+    const shouldCompact = forceCompact || fullJson.length > 60000;
+    const ecosystemJson = shouldCompact ? this.getEcosystemProjectsJsonString(true) : fullJson;
 
     return `Format this Kadena blockchain response in a clear, user-friendly way using markdown:
 
@@ -808,42 +855,13 @@ User Query: "${userQuery}"
 Original Response:
 ${responseStr}
 
-IMPORTANT: When mentioning ecosystem projects, ONLY include these approved projects:
+IMPORTANT: When mentioning ecosystem projects, ONLY include projects present in the dataset below.
 
-Ecosystem Projects:
-- Chips
-- Crankk
-- DNA
-- Hypercent
-- KadCars-NFT
-- Swarms-finance
-- UNITT
-- Wizards-Arena
-- Bro-Dex
-- Cyberfly-io
-- kadena-explorer
-- kadenai
+Approved Projects (names):
+${approvedProjectsList}
 
-DeFi Grantees:
-- KDSwap
-- Mercatus
-
-Non-Custodial Grantees:
-- LinxWallet
-- Magic
-- koala-wallet
-- enkrypt
-- eckowallet
-- zelcore
-
-Solutions Grantees:
-- DIA
-- Eucalyptus-Labs
-- Hack-a-Chain
-- Ideasoft
-- Obsidian-Systems
-- Simplex
-- marmalade-ng
+Ecosystem Data JSON (authoritative details: links, descriptions, teams, metrics):
+${ecosystemJson}
 
 If the response mentions any other projects not in this list, either:
 1. Replace them with the most relevant approved project, or
@@ -858,6 +876,38 @@ Please format this response to be:
 6. ONLY mention approved ecosystem projects from the list above
 
 Return only the formatted response, no additional commentary.`;
+  }
+
+  /**
+   * Builds a markdown bullet list of approved projects from ECOSYSTEM_PROJECTS.
+   */
+  private getApprovedProjectsListString(): string {
+    try {
+      const lines = ECOSYSTEM_PROJECTS.map(p => `- ${p.title}`);
+      return lines.join('\n');
+    } catch {
+      return '';
+    }
+  }
+
+  /**
+   * Returns ECOSYSTEM_PROJECTS as JSON. When compact=true, include only essential fields to reduce size.
+   */
+  private getEcosystemProjectsJsonString(compact: boolean = false): string {
+    try {
+      if (!compact) {
+        return JSON.stringify(ECOSYSTEM_PROJECTS);
+      }
+      const minimized = ECOSYSTEM_PROJECTS.map((p: any) => ({
+        title: p.title,
+        source: p.source,
+        overview: p?.content?.overview,
+        links: p?.content?.links
+      }));
+      return JSON.stringify(minimized);
+    } catch {
+      return '[]';
+    }
   }
 
   private getFallbackFormatting(originalResponse: any): string {

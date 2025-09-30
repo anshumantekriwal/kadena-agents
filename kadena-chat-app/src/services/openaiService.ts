@@ -1,5 +1,698 @@
 import axios from 'axios';
 
+export const ECOSYSTEM_PROJECTS = [
+  {
+    title: 'Official GitHub Repositories',
+    source: 'kadena-info',
+    content: {
+      overview: 'Official Kadena GitHub organizations.',
+      repositories: [
+        'https://github.com/kadena-io',
+        'https://github.com/kadena-community'
+      ],
+      notes: ['Both are official organizations used by the Kadena team.'],
+      links: {
+        github_org_primary: 'https://github.com/kadena-io',
+        github_org_secondary: 'https://github.com/kadena-community'
+      }
+    }
+  },
+  {
+    title: 'Chips Project',
+    source: 'chips',
+    content: {
+      overview:
+        'Chips democratizes crypto mining via tokenized, multi-algorithm hashrate rentals with cheap electricity. Users can own ASIC exposure through tokens, rent hashrate, and access real-time analytics with transparency.',
+      key_features: [
+        'Tokenized ASICs for fractional ownership and liquidity',
+        'Hashrate rentals without owning physical hardware',
+        'Multi-algorithm mining (Bitcoin, Kaspa, Litecoin, Kadena)',
+        'User-friendly interface; no advanced skills required',
+        'Decentralization, security, and transparency',
+        'Real-time mining data and tools'
+      ],
+      metrics: {
+        apr: '47.44%',
+        tvl_usd: '$107,194',
+        active_miners: 72,
+        total_kda_mined: 70842,
+        total_btc_mined: 0.32179,
+        mining_contracts_started: 149,
+        total_reward_claims: 226
+      },
+      team: [
+        { name: 'James Folkard', role: 'Co-Founder & CEO' },
+        { name: 'Todd Leach', role: 'Co-Founder & CTO' },
+        { name: 'Daniel Jones', role: 'Co-Founder & COO' },
+        { name: 'Toni Shopova', role: 'CRO' },
+        { name: 'Sophia Shota', role: 'PMO & CBDO' },
+        { name: 'Dennis Nita', role: 'Mining Ops & Community Lead' },
+        { name: 'Uy Pham', role: 'Graphic Designer' }
+      ],
+      links: {
+        website: 'https://www.chips.finance/',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/chips',
+        x: 'https://x.com/chips_finance',
+        discord: 'https://discord.gg/chips-finance'
+      }
+    }
+  },
+  {
+    title: 'Crankk Project',
+    source: 'crankk',
+    content: {
+      overview:
+        'Crankk is a global DePIN of LoRaWAN gateways on Kadena. Gateway operators earn CRKK via Proof-of-Network-Participation. Crankk OS enables multimining across 20+ DePIN projects.',
+      key_features: [
+        'LoRaWAN IoT network with long-range, low-power connectivity',
+        'Proof-of-Network-Participation rewards based on real coverage',
+        'Crankk OS (free, open-source) with dashboard and lifetime OTA updates',
+        'No hotspot maker dependency; supports DIY and repurposed hardware',
+        'No denylist; gateway ranking for emissions',
+        'Automatic, real-time reward distribution',
+        'Meshtastic integration with CRKK rewards',
+        'All-in-one mobile app for gateways, wallet, live sensor data',
+        'Built on Kadena for low fees and scalability',
+        'Community governance based on participation'
+      ],
+      tokenomics: {
+        allocation_to_operators: '80% of CRKK emission'
+      },
+      team: [
+        {
+          name: 'Community-owned',
+          role: 'Core contributors selected by participation'
+        }
+      ],
+      links: {
+        website: 'https://www.crankk.io/',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/crankk',
+        x: 'https://x.com/crankk_io',
+        telegram: 'http://t.me/crankkofficial',
+        discord: 'http://discord.gg/crankk',
+        depinhub: 'https://depinhub.io/projects/crankk'
+      }
+    }
+  },
+  {
+    title: 'DNA Project',
+    source: 'dna',
+    content: {
+      overview:
+        'Database of Native Assets (DNA) helps brands fight counterfeiting by minting branded NFTs to prove product provenance and authenticity on Kadena.',
+      key_features: [
+        'Anti-counterfeiting via tokenized product identities (NFTs)',
+        'End-to-end provenance tracking across the supply chain',
+        'Direct brand-to-customer trust and engagement',
+        'Tokenized physical products (digital twins)',
+        'Built on Kadena for scalability and low fees',
+        'Marmalade NFT standard',
+        'User-friendly for non-crypto brands'
+      ],
+      value_proposition:
+        'Reduces counterfeit risk in luxury and other markets while enabling authenticated resale and loyalty mechanics tied to NFT ownership.',
+      team: [
+        { name: 'Abraham Milano', role: 'Co-Founder & CTO' },
+        { name: 'Adam Joannou', role: 'Co-Founder & CEO' },
+        { name: 'Douglas Jakobi', role: 'Co-Founder & COO' }
+      ],
+      links: {
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/dna',
+        x: 'https://x.com/thednatech',
+        kadena_perspectives:
+          'https://medium.com/kadena-io/spotlight-on-dna-3f9d89446dc2'
+      }
+    }
+  },
+  {
+    title: 'Hypercent Project',
+    source: 'hypercent',
+    content: {
+      overview:
+        'Hypercent is a Kadena launchpad/IDO platform and NFT marketplace focused on fair, transparent project launches and high-quality incubation.',
+      key_features: [
+        'Launchpad for utility tokens and NFTs on Kadena',
+        'Fair IDO model using on-chain lottery and queue (no rigid tiers)',
+        'Integrated wallet and mobile-friendly dashboard',
+        'Project verification and incubation',
+        'Multi-token economy with demand-reflective tickets/allocations',
+        'Gas-free UX leveraging Kadena Gas Stations'
+      ],
+      tokenomics: {
+        native_token: 'HYPE',
+        ido_vault:
+          'Commissioned IDO tokens flow into an IDO Vault to incentivize HYPE holders and reduce ticket prices/allocations costs'
+      },
+      team: [
+        {
+          name: 'Early Kadenians',
+          role: 'Founding team; community-driven focus'
+        }
+      ],
+      links: {
+        website: 'https://app.hypercent.io/',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/hypercent',
+        x: 'https://x.com/hypercentpad',
+        kadena_perspectives:
+          'https://www.kadena.io/perspectives/spotlight-on-hypercent',
+        telegram: 'https://t.me/hypercentpad',
+        discord: 'https://discord.gg/hypercent'
+      }
+    }
+  },
+  {
+    title: 'KadCars-NFT Project',
+    source: 'kadcars',
+    content: {
+      overview:
+        'KadCars is a Web3 racing game on Kadena with upgradable, raceable, and rentable 3D NFT cars offering true digital ownership.',
+      key_features: [
+        'Hybrid arcade/physics-based racing built in Unity',
+        'Upgradable NFTs without burning via Ready-to-Render API (R2R)',
+        'Racing and customization sync to wallets and in-game',
+        'True ownership with trading and renting',
+        'Gas Station support for player transactions',
+        'Interoperability roadmap to use NFT cars in other 3D-enabled games'
+      ],
+      team: [
+        {
+          name: 'Mohammed Khalaf (MK)',
+          role: 'Mechanical Engineer; car design and physics (BMW-funded work)'
+        },
+        { name: 'Mohannad Ahmed (Mo)', role: 'CTO & Software Engineer' },
+        { name: 'Robertas', role: 'Team Lead; Web3/NFT project experience' }
+      ],
+      links: {
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/kadcars-nft',
+        x: 'https://x.com/kadcarsnft',
+        discord: 'http://discord.gg/74znq8jM8a',
+        enjin_showcase: 'https://enjin.io/ecosystem/kadcars',
+        kadena_perspectives:
+          'https://www.kadena.io/perspectives/the-future-of-web3-racing-kadcars-on-kadena'
+      }
+    }
+  },
+  {
+    title: 'Swarms.finance Project',
+    source: 'swarms-finance',
+    content: {
+      overview:
+        'Swarms.finance is a DAO creation and management tool on Kadena featuring on-chain voting, asset management, and a beginner-friendly UI.',
+      key_features: [
+        'Create and manage DAOs in minutes',
+        'On-chain voting executing blockchain transactions',
+        'Treasury and asset management (funds, LP, swaps, payments, purchases)',
+        'Gas-free UX via Kadena Gas Stations',
+        'Transparency through fully on-chain operations',
+        'Academy resources for first-time users'
+      ],
+      tokenomics: {
+        notes:
+          'No explicit native token; platform focuses on enabling DAOs and their assets'
+      },
+      links: {
+        website: 'https://dao.swarms.finance/',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/swarms-finance',
+        x: 'https://x.com/SwarmsFinance',
+        gitbook: 'https://swarms-finance.gitbook.io/swarms.finance-app',
+        kadena_perspectives:
+          'https://www.kadena.io/perspectives/project-spotlight-swarms-finance'
+      }
+    }
+  },
+  {
+    title: 'UNITT Project',
+    source: 'unitt',
+    content: {
+      overview:
+        'UNITT is a decentralized, privacy-preserving messaging platform that tokenizes interactions so messages, clicks, and views can be monetized.',
+      key_features: [
+        'Decentralized instant messaging with Web3 privacy',
+        'Tokenized interactions and pay-per-view content',
+        'User data and identity ownership',
+        'Built on Kadena for scalable, low-fee operations',
+        'Familiar Web2-like UI to reduce friction'
+      ],
+      team: [
+        { name: 'Jussi Mäkela', role: 'COO' },
+        { name: 'Mikko Ville-Valiento', role: 'CTO' }
+      ],
+      value_proposition:
+        'Provides creators and communities with integrated monetization while preserving privacy and ownership, unlike centralized Web2 messengers.',
+      links: {
+        website: 'https://www.unitt.io/',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/unitt',
+        x: 'https://x.com/UNITT_io',
+        kadena_perspectives:
+          'https://www.kadena.io/perspectives/a-new-way-to-connect-building-a-tokenized-messaging-platform-with-unitt'
+      }
+    }
+  },
+  {
+    title: 'Wizards Arena Project',
+    source: 'wizards-arena',
+    content: {
+      overview:
+        'Wizards Arena is a P2E digital collectible battler on Kadena featuring NFT wizards, equipment, and turn-based combat with tournaments.',
+      key_features: [
+        'Play-to-Earn with $WIZA rewards',
+        'NFT characters and equipment ownership',
+        'Turn-based combat and weekly tournaments',
+        'Multiple modes including free-to-play Arena',
+        'Community-driven roadmap',
+        'Built on Kadena (Chainweb + Pact)'
+      ],
+      tokenomics: {
+        native_token: 'WIZA',
+        earn_mechanics: [
+          'Staking NFT Wizards',
+          'Weekly airdrops to active players',
+          'Free-to-play rewards',
+          'Social engagement incentives'
+        ]
+      },
+      links: {
+        website: 'https://www.wizardsarena.net/',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/wizards-arena',
+        x: 'https://x.com/WizardsArena',
+        kadena_perspectives:
+          'https://www.kadena.io/perspectives/spotlight-on-wizards-arena'
+      }
+    }
+  },
+  {
+    title: 'Bro-DEX Project',
+    source: 'bro-dex',
+    content: {
+      overview:
+        'Bro-DEX is a fully decentralized order-book DEX on Kadena with zero maker fees and real-time order matching.',
+      key_features: [
+        'Order-book model (not AMM)',
+        'Zero maker fees',
+        'Multiple trading pairs (e.g., BRO/KDA, BRO/zUSD, BRO/HERON, KDA/zUSD)',
+        'Live on mainnet (Chain 2)',
+        'Real-time orderbook transparency',
+        'Smart contracts in Pact on Kadena'
+      ],
+      tokenomics: {
+        token: 'BRO (Kadena Brothers DAO)',
+        notes:
+          'DEX fees flow to Public Treasury; KDA swapped to BRO (self-pumping). Rewards active cultural contributions.'
+      },
+      links: {
+        website: 'https://dex.bro.pink/',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/bro-dex',
+        x_announcement:
+          'https://x.com/kadena_io/status/1904600157515358315',
+        medium:
+          'https://medium.com/@crypto-pac/bro-dex-orderbook-based-dex-on-kadena-and-pact-part-2-2-scalability-decoding-25479babba4f',
+        github: 'https://github.com/brothers-DAO/bro-token'
+      }
+    }
+  },
+  {
+    title: 'Cyberfly.io Project',
+    source: 'cyberfly',
+    content: {
+      overview:
+        'Cyberfly.io is an open-source decentralized IoT platform on Kadena with device onboarding, automation, real-time data, and monetization.',
+      key_features: [
+        'Decentralized IoT orchestration on Kadena',
+        'Customizable dashboards and built-in wallet (CFLY, KDA)',
+        'Easy onboarding for Raspberry Pi and ESP32',
+        'Rules/automation and orchestration',
+        'Optimized MicroPython firmware for ESP32',
+        'Hybrid storage: Redis + OrbitDB/IPFS',
+        'Real-time streaming and historical storage',
+        'End-to-end encryption and signed firmware',
+        'REST & WebSocket APIs; SDKs (MicroPython, Arduino C; Rust planned)',
+        'Incentivized node network and integrations marketplace'
+      ],
+      tokenomics: {
+        token: 'CFLY',
+        model:
+          'Utility token with burn + treasury; portion of each fee burned; first device registration free'
+      },
+      roadmap: [
+        'Q3 2025: Testnet enhancements (SDKs, dashboards, reliability)',
+        'Q4 2025: Mainnet beta (CFLY rollout, device registration, burn/treasury)',
+        '2026: Marketplace, partner devices, community governance inputs'
+      ],
+      links: {
+        website: 'https://cyberfly.io/',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/cyberfly-io',
+        x: 'https://x.com/cyberfly_io',
+        github: 'https://github.com/cyberfly-io',
+        medium: 'https://cyberfly-io.medium.com/',
+        youtube: 'https://www.youtube.com/channel/UCXrov74p74hkwukbg8uSgLg'
+      }
+    }
+  },
+  {
+    title: 'Kadena Explorer Project',
+    source: 'kadena-explorer',
+    content: {
+      overview:
+        'Kadena Explorer is an analytics and block explorer suite for Kadena, offering network insights, transactions, and NFT collection data.',
+      key_features: [
+        'Block explorer for blocks, txs, accounts',
+        'Analytics: circulating supply, market cap, tx count, avg fees',
+        'Advanced search by address, request key, event, block height',
+        'Real-time blocks and transactions',
+        'NFT collections overview',
+        'Built by Eucalyptus Labs (Explorer product); official explorer also available'
+      ],
+      metrics: {
+        kda_price: '$0.448814 (-0.82%)',
+        circulating_supply: '327.45M KDA',
+        market_cap: '$146.96M',
+        total_transactions: '199.76M',
+        avg_tx_fee: '$0.0000483'
+      },
+      links: {
+        website: 'https://kdaexplorer.com/',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/kadena-explorer',
+        official_explorer: 'https://explorer.chainweb.com/',
+        github: 'https://github.com/kadena-io/block-explorer'
+      }
+    }
+  },
+  {
+    title: 'KadenAI Project',
+    source: 'kadenai',
+    content: {
+      overview:
+        'KadenAI is an end-to-end NFT minting platform on Kadena using Pact, offering traits, royalties, APIs, and bot integrations.',
+      key_features: [
+        'Full NFT lifecycle: create, manage, trade',
+        'Trait support for unique NFTs',
+        'Royalties on secondary sales',
+        'NFT Minter Credits model',
+        'Developer APIs and bot integrations',
+        'Built on Kadena with Pact'
+      ],
+      tokenomics: {
+        credits: 'Minting requires credits purchasable in the marketplace',
+        notes:
+          'Heron token contract mentioned in docs; general Pact functions referenced'
+      },
+      links: {
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/kadenai',
+        docs: 'https://kadenai-docs.readthedocs.io/en/latest/nfts/minter.html'
+      }
+    }
+  },
+  {
+    title: 'KDSwap Project',
+    source: 'kdswap',
+    content: {
+      overview:
+        'KDSwap is a gas-free DEX on Kadena with a clean UX and a compliance roadmap toward MiCA in Europe.',
+      key_features: [
+        'Gas-free token swaps via Gas Stations',
+        'Decentralized exchange on Kadena',
+        'Simple, innovative user experience',
+        'Pursuing MiCA compliance',
+        'Liquidity pools and yield opportunities'
+      ],
+      tokenomics: {
+        token: 'KDS',
+        notes:
+          'Likely used for governance/staking/incentives; also a trading pair'
+      },
+      links: {
+        website: 'https://www.kdswap.exchange/',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/kdswap',
+        x: 'https://x.com/KdSwap',
+        kadena_perspectives:
+          'https://www.kadena.io/perspectives/kdswap-working-towards-becoming-mica-compliant-dex',
+        telegram: 'https://t.me/kdswap',
+        github: 'https://github.com/kdswap'
+      }
+    }
+  },
+  {
+    title: 'Mercatus Project',
+    source: 'mercatus',
+    content: {
+      overview:
+        'Mercatus is a community-built, truly decentralized, zero-fee DEX on Kadena for seamless token swaps and liquidity.',
+      key_features: [
+        'Zero-fee trading experience',
+        'Community-driven development',
+        'Decentralized and censorship-resistant',
+        'Liquidity provision and analytics',
+        'Built on Kadena infrastructure'
+      ],
+      tokenomics: {
+        token: 'KDX',
+        notes:
+          'Listed on DeFiLlama with price and staked value; likely governance/staking utility'
+      },
+      links: {
+        website: 'https://www.mercatus.works/',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/mercatus',
+        x_announcement:
+          'https://x.com/kadena_io/status/1834668620485738947',
+        defillama: 'https://defillama.com/protocol/mercatus'
+      }
+    }
+  },
+  {
+    title: 'LinxWallet Project',
+    source: 'linxwallet',
+    content: {
+      overview:
+        'LinxWallet (by Linx Labs) is a non-custodial, gas-free mobile wallet for Kadena and Alephium focused on simple DeFi and asset transfers.',
+      key_features: [
+        'True gas-free transfers and chainless transfers',
+        'Non-custodial; user controls keys',
+        'Multi-chain: Kadena and Alephium',
+        'Mobile apps on iOS and Android',
+        'Easy asset management and swaps',
+        'Automatic token discovery (no manual add)'
+      ],
+      value_proposition:
+        'Removes fee friction and complexity to make everyday crypto actions accessible on Kadena/Alephium.',
+      links: {
+        website: 'https://linxlabs.org/wallet',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/linxwallet',
+        x: 'https://x.com/LinxWallet',
+        play_store:
+          'https://play.google.com/store/apps/details?id=com.thinedgelabs.linx_wallet',
+        app_store: 'https://apps.apple.com/id/app/linx-wallet/id6450412379',
+        kadena_perspectives:
+          'https://www.kadena.io/perspectives/spotlight-on-linx-by-thinedge-labs'
+      }
+    }
+  },
+  {
+    title: 'Magic Project',
+    source: 'magic',
+    content: {
+      overview:
+        'Magic (Magic Labs) provides keyless, passwordless wallets and wallet abstraction via a developer SDK to streamline Web3 onboarding.',
+      key_features: [
+        'Wallet abstraction for simplified UX',
+        'Keyless/passwordless auth (email OTP, magic links, social, WebAuthn)',
+        'Developer-friendly JS SDK',
+        'Multi-chain support including Kadena',
+        'Security and compliance focus',
+        'Familiar Web2 login flows for onboarding'
+      ],
+      value_proposition:
+        'Removes the Web3 wallet complexity barrier, enabling mainstream-friendly onboarding for apps building on Kadena.',
+      links: {
+        website: 'https://magic.link/',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/magic',
+        docs: 'https://magic.link/docs/blockchains/other-chains/other/kadena',
+        x: 'https://x.com/magic_labs',
+        x_announcement: 'https://x.com/kadena_io/status/1874849096823103736'
+      }
+    }
+  },
+  {
+    title: 'Koala Wallet Project',
+    source: 'koala-wallet',
+    content: {
+      overview:
+        'Koala Wallet is a non-custodial wallet with fast UX, strong security, NFT support, and cross-chain features tailored for Kadena.',
+      key_features: [
+        'User-controlled keys; non-custodial',
+        'Multi-blockchain support with Kadena focus',
+        'Buy, send, receive, and store crypto',
+        'Mobile dApp compatibility',
+        'Best-in-class NFT support on Kadena',
+        'Cross-chain transactions on Chainweb',
+        'KadenaKeys tool for exporting private keys'
+      ],
+      value_proposition:
+        'Streamlines secure asset and NFT management for Kadena users with a polished, mobile-first experience.',
+      links: {
+        website: 'https://koalawallet.io/',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/koala-wallet',
+        app_store: 'https://apps.apple.com/us/app/koala-wallet/id1627486259',
+        play_store:
+          'https://play.google.com/store/apps/details?id=com.eucalyptuslabs.kowallet',
+        x: 'https://x.com/koalawallet',
+        medium: 'https://medium.com/@KoalaWallet',
+        support: 'https://support.koalawallet.io/'
+      }
+    }
+  },
+  {
+    title: 'Enkrypt Project',
+    source: 'enkrypt',
+    content: {
+      overview:
+        'Enkrypt is a multichain browser-extension wallet (MetaMask alternative) supporting 70+ networks including Kadena, with tokens, NFTs, and dApp access.',
+      key_features: [
+        '70+ blockchain networks supported',
+        'Non-custodial key management',
+        'Hold, buy, send, receive, swap',
+        'NFT management and Web3 dApp access',
+        'Open-source codebase',
+        'Roadmap to buy/sell/stake/swap KDA in-wallet'
+      ],
+      value_proposition:
+        'Unifies multi-chain asset and dApp workflows in a single extension, lowering friction for cross-ecosystem users.',
+      links: {
+        website: 'https://www.enkrypt.com/',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/enkrypt',
+        chrome_web_store:
+          'https://chromewebstore.google.com/detail/enkrypt-eth-btc-and-solan/kkpllkodjeloidieedojogacfhpaihoh',
+        firefox_addons: 'https://addons.mozilla.org/en-US/firefox/addon/enkrypt/',
+        opera_addons: 'https://addons.opera.com/en/extensions/details/enkrypt/',
+        x: 'https://x.com/enkrypt_com',
+        kadena_tutorial: 'https://www.kadena.io/connect/6gBf7z_6rtk'
+      }
+    }
+  },
+  {
+    title: 'eckoWALLET Project',
+    source: 'eckowallet',
+    content: {
+      overview:
+        'eckoWALLET is a leading Kadena-native wallet (web extension + mobile) with DeFi features, swaps, NFTs, and cross-chain support.',
+      key_features: [
+        'Optimized for Kadena (web extension + iOS/Android)',
+        'Non-custodial asset control',
+        'Token and NFT management',
+        'Built-in swaps and WalletConnect support',
+        'Clean UX and cross-chain transfers'
+      ],
+      value_proposition:
+        'A comprehensive gateway to Kadena DeFi and NFTs across desktop and mobile.',
+      links: {
+        chrome_web_store:
+          'https://chromewebstore.google.com/detail/eckowallet/bofddndhbegljegmpmnlbhcejofmjgbn',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/eckowallet',
+        x: 'https://x.com/eckowallet',
+        play_store: 'https://play.google.com/store/apps/details?id=com.xwallet.mobile',
+        app_store: 'https://apps.apple.com/us/app/eckowallet/id1632056372'
+      }
+    }
+  },
+  {
+    title: 'Zelcore Project',
+    source: 'zelcore',
+    content: {
+      overview:
+        'Zelcore is a secure non-custodial multi-chain wallet for 450+ coins and 50k+ tokens across 80+ blockchains, including Kadena.',
+      key_features: [
+        'User-controlled keys and privacy safeguards',
+        'Store, send, receive, swap, buy, sell crypto and NFTs',
+        'Decentralized 2FA',
+        'Built-in exchange integrations',
+        'Desktop and mobile apps (Win/macOS/Linux/iOS/Android)'
+      ],
+      value_proposition:
+        'Versatile portfolio-level control for power users spanning many chains with strong security and privacy.',
+      links: {
+        website: 'https://zelcore.io/',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/zelcore',
+        play_store: 'https://play.google.com/store/apps/details?id=com.zelcash.zelcore',
+        app_store: 'https://apps.apple.com/us/app/zelcore/id1436296839',
+        x: 'https://x.com/zelcore_io'
+      }
+    }
+  },
+  {
+    title: 'DIA Project',
+    source: 'dia',
+    content: {
+      overview:
+        'DIA is a trustless, open-source oracle network offering transparent, customizable data feeds (prices, RWAs, randomness) to any chain including Kadena.',
+      key_features: [
+        'Verifiable sourcing and delivery; modular rollup-based design',
+        'Cross-chain compatibility for DeFi, RWAs, NFTs',
+        'Granular data from CEXs and DEXs with transparent aggregation',
+        'APIs and smart contract integrations',
+        'Open-source and community-driven'
+      ],
+      value_proposition:
+        'Provides robust, transparent external data essential for secure DeFi and tokenized applications on Kadena.',
+      links: {
+        website: 'https://www.diadata.org/',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/dia',
+        kadena_price_feed:
+          'https://www.diadata.org/app/price/asset/Kadena/0x0000000000000000000000000000000000000000/',
+        x: 'https://x.com/DIAdata_org',
+        github: 'https://github.com/diadata-org/diadata',
+        docs: 'https://www.diadata.org/docs/home'
+      }
+    }
+  },
+  {
+    title: 'Eucalyptus Labs Project',
+    source: 'eucalyptus-labs',
+    content: {
+      overview:
+        'Eucalyptus Labs builds UX and infrastructure to connect everyday users with blockchain, supported by a Kadena grant.',
+      key_features: [
+        'User-centric product development',
+        'Kadena grantee with active ecosystem contributions',
+        'Products: Koala Wallet, Kadena Keys, KadenaDartSdk',
+        'Bridging UX and infra for practical blockchain adoption'
+      ],
+      value_proposition:
+        'Reduces complexity through polished UX and essential tooling that accelerates adoption.',
+      links: {
+        website: 'https://www.eucalyptuslabs.com/',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/eucalyptus-labs',
+        x: 'https://x.com/euclabs',
+        linkedin: 'https://www.linkedin.com/company/eucalyptus-labs/',
+        github: 'https://github.com/Eucalyptus-Labs',
+        kadena_perspectives:
+          'https://www.kadena.io/perspectives/spotlight-on-eucalyptus-labs'
+      }
+    }
+  },
+  {
+    title: 'Hack-a-Chain Project',
+    source: 'hack-a-chain',
+    content: {
+      overview:
+        'Hack-a-Chain is a software firm building custom blockchain solutions and infra for Kadena, including a fast GraphQL indexer.',
+      key_features: [
+        'Custom dApps and financial services',
+        'Kadena-focused infrastructure engineering',
+        'Developer-friendly GraphQL indexer for Kadena data',
+        '2+ years of Kadena ecosystem experience'
+      ],
+      value_proposition:
+        'Enables teams to ship on Kadena faster with specialized development and robust data access tooling.',
+      links: {
+        website: 'https://www.hackachain.io/',
+        kadena_ecosystem: 'https://www.kadena.io/ecosystem/hack-a-chain',
+        x: 'https://x.com/hackachain',
+        github: 'https://github.com/hack-a-chain-software',
+        linkedin: 'https://br.linkedin.com/company/hackachain'
+      }
+    }
+  }
+];
+
 export interface OpenAIResponse {
   formattedResponse: string;
   isMarkdown: boolean;

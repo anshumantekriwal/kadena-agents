@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import WalletInfo from "./WalletInfo";
 import "./Navbar.css";
@@ -23,6 +23,7 @@ const Navbar: React.FC = () => {
     { label: "Chat", path: "/", icon: "" },
     { label: "Dashboard", path: "/dashboard", icon: "" },
     { label: "Agent Launcher", path: "/agent", icon: "" },
+    { label: "Leaderboard", path: "/leaderboard", icon: "🏆" },
   ];
 
   return (

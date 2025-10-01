@@ -16,6 +16,7 @@ import Navbar from "./components/Navbar";
 import AgentLauncher from "./components/agent/AgentLauncher";
 import AgentPage from "./components/agent/AgentPage";
 import WalletInfo from "./components/WalletInfo";
+import Leaderboard from "./components/Leaderboard";
 
 // Protected route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -110,6 +111,14 @@ const AppRoutes: React.FC = () => {
                 <Navbar />
                 <WalletInfo />
               </div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/leaderboard"
+          element={
+            <ProtectedRoute>
+              <Leaderboard />
             </ProtectedRoute>
           }
         />

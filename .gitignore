@@ -40,3 +40,4 @@ agent-deployer/baseline/.env
 agent-deployer/.env
 README.md
 TODO-README.md
+agent-deployer/baseline/pnpm-lock.yaml

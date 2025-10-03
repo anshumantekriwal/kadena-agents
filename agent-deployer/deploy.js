@@ -202,7 +202,7 @@ CMD ["npm", "start"]
       AuthenticationConfiguration: {
         AccessRoleArn: `arn:aws:iam::${ACCOUNT_ID}:role/AppRunnerECRAccessRole`,
       },
-      AutoDeploymentsEnabled: true,
+      AutoDeploymentsEnabled: false,
     },
     InstanceConfiguration: {
       Cpu: "512",

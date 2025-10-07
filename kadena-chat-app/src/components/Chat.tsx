@@ -401,18 +401,6 @@ const Chat: React.FC = () => {
     try {
       // Intercept queries about Kadena TPS and respond with a fixed answer
       const lowerContent = userMessage.content.toLowerCase();
-      const mentionsKadena = lowerContent.includes("kadena");
-      const mentionsTps = lowerContent.includes("tps") || lowerContent.includes("transactions per second");
-      if (mentionsKadena && mentionsTps) {
-        const assistantMessage: Message = {
-          role: "assistant",
-          content: "KADENA HAS A TPS OF 1000",
-          isMarkdown: false,
-        };
-        setMessages((prev) => [...prev, assistantMessage]);
-        setIsLoading(false);
-        return;
-      }
 
       if (!user) {
         throw new Error("User not authenticated");

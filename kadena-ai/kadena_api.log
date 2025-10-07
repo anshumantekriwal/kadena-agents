@@ -159,3 +159,8 @@
 2025-10-06 23:44:34,136 - __main__ - INFO - Processing query with agent
 2025-10-06 23:44:42,089 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
 2025-10-06 23:44:42,092 - __main__ - INFO - Successfully processed query
+2025-10-07 00:29:40,787 - __main__ - INFO - Health check request received
+2025-10-07 00:29:40,789 - __main__ - INFO - OpenAI status check successful
+2025-10-07 00:29:40,789 - __main__ - INFO - Checking Kadena API connection
+2025-10-07 00:29:41,246 - __main__ - INFO - Kadena API connection check successful
+2025-10-07 00:29:41,246 - __main__ - INFO - Health check completed successfully

@@ -34,3 +34,128 @@
 2025-05-09 15:26:00,145 - __main__ - INFO - Processing query with agent
 2025-05-09 15:26:07,486 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
 2025-05-09 15:26:08,307 - __main__ - INFO - Successfully processed query
+2025-10-06 23:26:10,165 - __main__ - INFO - Health check request received
+2025-10-06 23:26:10,205 - __main__ - INFO - OpenAI status check successful
+2025-10-06 23:26:10,205 - __main__ - INFO - Checking Kadena API connection
+2025-10-06 23:26:10,660 - __main__ - INFO - Kadena API connection check successful
+2025-10-06 23:26:10,660 - __main__ - INFO - Health check completed successfully
+2025-10-06 23:26:19,214 - __main__ - INFO - Received query request
+2025-10-06 23:26:19,214 - __main__ - INFO - Processing query with agent
+2025-10-06 23:26:19,242 - __main__ - ERROR - Error processing query: "Input to ChatPromptTemplate is missing variables {'option B', 'parameter', 'project', 'official source', 'official resource', 'option A', 'other chain', 'Reason', 'X', 'service', 'timestamp'}.  Expected: ['API_DOCS', 'ECOSYSTEM_PROJECTS', 'Reason', 'TOKENS', 'X', 'agent_scratchpad', 'formatted_history', 'input', 'official resource', 'official source', 'option A', 'option B', 'other chain', 'parameter', 'project', 'service', 'timestamp'] Received: ['input', 'intermediate_steps', 'API_DOCS', 'TOKENS', 'ECOSYSTEM_PROJECTS', 'history', 'formatted_history', 'agent_scratchpad']\nNote: if you intended {option B} to be part of the string and not a variable, please escape it with double curly braces like: '{{option B}}'.\nFor troubleshooting, visit: https://python.langchain.com/docs/troubleshooting/errors/INVALID_PROMPT_INPUT "
+2025-10-06 23:27:02,406 - __main__ - INFO - Received query request
+2025-10-06 23:27:02,406 - __main__ - INFO - Processing query with agent
+2025-10-06 23:27:02,430 - __main__ - ERROR - Error processing query: "Input to ChatPromptTemplate is missing variables {'option B', 'parameter', 'project', 'official source', 'official resource', 'option A', 'other chain', 'Reason', 'X', 'service', 'timestamp'}.  Expected: ['API_DOCS', 'ECOSYSTEM_PROJECTS', 'Reason', 'TOKENS', 'X', 'agent_scratchpad', 'formatted_history', 'input', 'official resource', 'official source', 'option A', 'option B', 'other chain', 'parameter', 'project', 'service', 'timestamp'] Received: ['input', 'intermediate_steps', 'API_DOCS', 'TOKENS', 'ECOSYSTEM_PROJECTS', 'history', 'formatted_history', 'agent_scratchpad']\nNote: if you intended {option B} to be part of the string and not a variable, please escape it with double curly braces like: '{{option B}}'.\nFor troubleshooting, visit: https://python.langchain.com/docs/troubleshooting/errors/INVALID_PROMPT_INPUT "
+2025-10-06 23:28:01,690 - __main__ - INFO - Health check request received
+2025-10-06 23:28:01,724 - __main__ - INFO - OpenAI status check successful
+2025-10-06 23:28:01,724 - __main__ - INFO - Checking Kadena API connection
+2025-10-06 23:28:01,989 - __main__ - INFO - Kadena API connection check successful
+2025-10-06 23:28:01,989 - __main__ - INFO - Health check completed successfully
+2025-10-06 23:28:10,893 - __main__ - INFO - Received query request
+2025-10-06 23:28:10,893 - __main__ - INFO - Processing query with agent
+2025-10-06 23:28:20,200 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:28:20,213 - __main__ - INFO - Successfully processed query
+2025-10-06 23:28:29,347 - __main__ - INFO - Received query request
+2025-10-06 23:28:29,347 - __main__ - INFO - Processing query with agent
+2025-10-06 23:28:33,192 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:28:33,195 - __main__ - INFO - Successfully processed query
+2025-10-06 23:28:41,691 - __main__ - INFO - Received query request
+2025-10-06 23:28:41,691 - __main__ - INFO - Processing query with agent
+2025-10-06 23:28:44,863 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:28:44,866 - __main__ - INFO - Successfully processed query
+2025-10-06 23:28:52,377 - __main__ - INFO - Received query request
+2025-10-06 23:28:52,377 - __main__ - INFO - Processing query with agent
+2025-10-06 23:28:57,810 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:28:57,812 - __main__ - INFO - Successfully processed query
+2025-10-06 23:29:06,304 - __main__ - INFO - Received query request
+2025-10-06 23:29:06,304 - __main__ - INFO - Processing query with agent
+2025-10-06 23:29:10,297 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:29:10,299 - __main__ - INFO - Successfully processed query
+2025-10-06 23:29:17,357 - __main__ - INFO - Received query request
+2025-10-06 23:29:17,357 - __main__ - INFO - Processing query with agent
+2025-10-06 23:29:26,731 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:29:26,733 - __main__ - INFO - Successfully processed query
+2025-10-06 23:29:34,535 - __main__ - INFO - Received query request
+2025-10-06 23:29:34,535 - __main__ - INFO - Processing query with agent
+2025-10-06 23:29:38,741 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:29:38,743 - __main__ - INFO - Successfully processed query
+2025-10-06 23:29:46,238 - __main__ - INFO - Received query request
+2025-10-06 23:29:46,239 - __main__ - INFO - Processing query with agent
+2025-10-06 23:29:56,958 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:29:56,960 - __main__ - INFO - Successfully processed query
+2025-10-06 23:30:06,393 - __main__ - INFO - Received query request
+2025-10-06 23:30:06,393 - __main__ - INFO - Processing query with agent
+2025-10-06 23:30:17,204 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:30:17,206 - __main__ - INFO - Successfully processed query
+2025-10-06 23:32:29,746 - __main__ - INFO - Received query request
+2025-10-06 23:32:29,746 - __main__ - INFO - Processing query with agent
+2025-10-06 23:32:33,538 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:32:33,541 - __main__ - INFO - Successfully processed query
+2025-10-06 23:32:40,843 - __main__ - INFO - Received query request
+2025-10-06 23:32:40,843 - __main__ - INFO - Processing query with agent
+2025-10-06 23:32:45,182 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:32:45,185 - __main__ - INFO - Successfully processed query
+2025-10-06 23:32:45,208 - __main__ - INFO - Received query request
+2025-10-06 23:32:45,208 - __main__ - INFO - Processing query with agent
+2025-10-06 23:32:55,235 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:32:55,237 - __main__ - INFO - Successfully processed query
+2025-10-06 23:40:39,771 - __main__ - INFO - Received query request
+2025-10-06 23:40:39,771 - __main__ - INFO - Processing query with agent
+2025-10-06 23:40:53,260 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:41:58,912 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:41:58,916 - __main__ - INFO - Successfully processed query
+2025-10-06 23:42:05,610 - __main__ - INFO - Received query request
+2025-10-06 23:42:05,610 - __main__ - INFO - Processing query with agent
+2025-10-06 23:42:12,701 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:42:12,703 - __main__ - INFO - Successfully processed query
+2025-10-06 23:42:12,723 - __main__ - INFO - Received query request
+2025-10-06 23:42:12,723 - __main__ - INFO - Processing query with agent
+2025-10-06 23:42:17,515 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:42:17,517 - __main__ - INFO - Successfully processed query
+2025-10-06 23:42:23,748 - __main__ - INFO - Received query request
+2025-10-06 23:42:23,748 - __main__ - INFO - Processing query with agent
+2025-10-06 23:42:32,314 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:42:32,321 - __main__ - INFO - Successfully processed query
+2025-10-06 23:42:38,587 - __main__ - INFO - Received query request
+2025-10-06 23:42:38,587 - __main__ - INFO - Processing query with agent
+2025-10-06 23:42:45,426 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:42:45,428 - __main__ - INFO - Successfully processed query
+2025-10-06 23:42:51,804 - __main__ - INFO - Received query request
+2025-10-06 23:42:51,804 - __main__ - INFO - Processing query with agent
+2025-10-06 23:42:56,564 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:42:56,566 - __main__ - INFO - Successfully processed query
+2025-10-06 23:43:03,652 - __main__ - INFO - Received query request
+2025-10-06 23:43:03,653 - __main__ - INFO - Processing query with agent
+2025-10-06 23:43:16,581 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:43:16,584 - __main__ - INFO - Successfully processed query
+2025-10-06 23:43:16,611 - __main__ - INFO - Received query request
+2025-10-06 23:43:16,611 - __main__ - INFO - Processing query with agent
+2025-10-06 23:43:23,080 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:43:23,082 - __main__ - INFO - Successfully processed query
+2025-10-06 23:43:30,741 - __main__ - INFO - Received query request
+2025-10-06 23:43:30,741 - __main__ - INFO - Processing query with agent
+2025-10-06 23:43:36,187 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:43:36,190 - __main__ - INFO - Successfully processed query
+2025-10-06 23:43:41,863 - __main__ - INFO - Received query request
+2025-10-06 23:43:41,863 - __main__ - INFO - Processing query with agent
+2025-10-06 23:43:47,249 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:43:47,252 - __main__ - INFO - Successfully processed query
+2025-10-06 23:43:53,617 - __main__ - INFO - Received query request
+2025-10-06 23:43:53,617 - __main__ - INFO - Processing query with agent
+2025-10-06 23:44:06,239 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:44:06,241 - __main__ - INFO - Successfully processed query
+2025-10-06 23:44:06,265 - __main__ - INFO - Received query request
+2025-10-06 23:44:06,266 - __main__ - INFO - Processing query with agent
+2025-10-06 23:44:09,710 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:44:09,712 - __main__ - INFO - Successfully processed query
+2025-10-06 23:44:16,097 - __main__ - INFO - Received query request
+2025-10-06 23:44:16,097 - __main__ - INFO - Processing query with agent
+2025-10-06 23:44:22,430 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:44:22,431 - __main__ - INFO - Successfully processed query
+2025-10-06 23:44:22,451 - __main__ - INFO - Received query request
+2025-10-06 23:44:22,451 - __main__ - INFO - Processing query with agent
+2025-10-06 23:44:28,296 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:44:28,298 - __main__ - INFO - Successfully processed query
+2025-10-06 23:44:34,135 - __main__ - INFO - Received query request
+2025-10-06 23:44:34,136 - __main__ - INFO - Processing query with agent
+2025-10-06 23:44:42,089 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-10-06 23:44:42,092 - __main__ - INFO - Successfully processed query

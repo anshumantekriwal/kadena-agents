@@ -508,18 +508,26 @@ const Chat: React.FC = () => {
           isMarkdown: true,
         };
       } else {
-        // Handle non-transactional responses with OpenAI formatting
-        console.log('🟢 CHAT: Detected non-transactional response, calling OpenAI service');
+        // Handle non-transactional responses - backend already formats them
+        console.log('🟢 CHAT: Detected non-transactional response from backend');
         console.log('🟢 CHAT: API response type:', typeof apiResponse);
         console.log('🟢 CHAT: API response content:', apiResponse);
         
-        const openaiResult = await openaiService.formatResponse(apiResponse, userMessage.content);
-        console.log('🟢 CHAT: OpenAI service returned:', openaiResult);
+        // Backend already formats the response, just use it directly
+        let content: string;
+        if (typeof apiResponse === 'string') {
+          content = apiResponse;
+        } else if (typeof apiResponse === 'object' && apiResponse !== null) {
+          const responseObj = apiResponse as any;
+          content = responseObj.text || responseObj.answer || JSON.stringify(apiResponse, null, 2);
+        } else {
+          content = String(apiResponse);
+        }
         
         assistantMessage = {
           role: "assistant",
-          content: openaiResult.formattedResponse,
-          isMarkdown: openaiResult.isMarkdown,
+          content: content,
+          isMarkdown: true,  // Backend responses are already markdown formatted
         };
         
         console.log('🟢 CHAT: Final assistant message created:', assistantMessage);

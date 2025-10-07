@@ -10,7 +10,7 @@ API_KEY = os.getenv("API_KEY")
 
 # OpenAI Model Configuration
 MODEL_NAME = "o4-mini"
-GPT4_MODEL = "gpt-4o-mini"
+GPT4_MODEL = "gpt-5"
 
 
 # API documentation
@@ -514,4 +514,55 @@ KADENA_API_BASE_URL = "https://kadena-agents.onrender.com"
 ANALYSIS_API_URL = "https://kadena-rag.onrender.com/query"
 
 # History Configuration
-MAX_HISTORY_LENGTH = 10  # Maximum number of conversation pairs to keep 
+MAX_HISTORY_LENGTH = 10  # Maximum number of conversation pairs to keep
+
+# Ecosystem Projects Data
+ECOSYSTEM_PROJECTS = """
+## Kadena Ecosystem Projects
+
+### Official Resources
+- **GitHub Repositories**: 
+  - Primary: https://github.com/kadena-io
+  - Community: https://github.com/kadena-community
+- **Website**: https://kadena.io
+- **Documentation**: https://docs.kadena.io
+- **Explorer**: https://explorer.chainweb.com, https://kdaexplorer.com
+
+### DEXes
+- **KDSwap**: Gas-free DEX pursuing MiCA compliance. Zero gas fees via Gas Stations. https://www.kdswap.exchange/
+- **Mercatus**: Zero-fee, community-driven decentralized DEX. Built for censorship resistance. https://www.mercatus.works/
+- **Bro-DEX**: Order-book based DEX with zero maker fees. Real-time orderbook on mainnet Chain 2. https://dex.bro.pink/
+
+### Wallets
+- **eckoWALLET**: Leading Kadena-native wallet with web extension and mobile apps. Token & NFT management, built-in swaps. https://eckowallet.com
+- **Koala Wallet**: Non-custodial wallet with best-in-class NFT support and cross-chain transactions. https://koalawallet.io/
+- **LinxWallet**: Gas-free mobile wallet for Kadena and Alephium with chainless transfers. https://linxlabs.org/wallet
+- **Magic**: Keyless wallet abstraction via email OTP and social login. Simplifies Web3 onboarding. https://magic.link/
+- **Zelcore**: Multi-chain wallet supporting 450+ coins across 80+ blockchains. https://zelcore.io/
+- **Enkrypt**: Multi-chain browser extension (MetaMask alternative) supporting 70+ networks. https://www.enkrypt.com/
+
+### NFT & Gaming
+- **Marmalade**: Official Kadena NFT standard (KIP-0013 v2) with policy-based features and royalties
+- **Wizards Arena**: Play-to-Earn digital collectible battler with WIZA token rewards and weekly tournaments. https://www.wizardsarena.net/
+- **KadCars-NFT**: Web3 racing game with upgradable 3D NFT cars built in Unity. https://kadena.io/ecosystem/kadcars-nft
+
+### DeFi & Infrastructure
+- **Hypercent**: Launchpad and IDO platform with fair lottery system and project incubation. https://app.hypercent.io/
+- **Swarms.finance**: DAO creation and management tool with on-chain voting and gas-free UX. https://dao.swarms.finance/
+- **Chips**: Tokenized crypto mining with hashrate rentals and multi-algorithm support (BTC, KDA, KAS, LTC). https://www.chips.finance/
+- **DIA**: Trustless oracle network providing transparent price feeds and data for DeFi. https://www.diadata.org/
+
+### Real-World Use Cases
+- **DNA**: Anti-counterfeiting platform using NFTs for product provenance and authenticity. https://kadena.io/ecosystem/dna
+- **Crankk**: DePIN LoRaWAN IoT network with Proof-of-Network-Participation rewards. https://www.crankk.io/
+- **Cyberfly.io**: Decentralized IoT platform for Raspberry Pi and ESP32 with real-time data. https://cyberfly.io/
+- **UNITT**: Privacy-preserving messaging platform with tokenized interactions. https://www.unitt.io/
+
+### Developer Tools
+- **Eucalyptus Labs**: Builders of Koala Wallet, Kadena Explorer, and developer SDKs. https://www.eucalyptuslabs.com/
+- **Hack-a-Chain**: GraphQL indexer and custom dApp development for Kadena. https://www.hackachain.io/
+
+### Key Standards
+- **KIP-0007**: Poly-fungible token standard (similar to ERC-1155)
+- **KIP-0013**: Marmalade v2 NFT standard with policy framework
+""" 

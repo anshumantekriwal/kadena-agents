@@ -41,3 +41,7 @@ agent-deployer/.env
 README.md
 TODO-README.md
 agent-deployer/baseline/pnpm-lock.yaml
+REVISIONS.md
+TEST_RESULTS.md
+TESTING_COMPLETE.md
+kadena-chat-app/Agent K - Tests.csv

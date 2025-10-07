@@ -78,7 +78,7 @@ def _lint_check(js_code: str) -> str | None:
 
 def _invoke_guardrail(original: dict, syntax_err: str | None, lint_err: str | None) -> dict:
     print("🤖 Invoking guardrail model…")
-    guard = ChatOpenAI(model="gpt-4o")
+    guard = ChatOpenAI(model="gpt-5")
     system = SystemMessage(
 """
 You are a JavaScript code specialist whose sole job is to correct and refine trading-agent snippets.
